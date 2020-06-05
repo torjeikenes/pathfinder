@@ -15,7 +15,3 @@ void Cell::setVisited(){
     status = Stat::visited;
     set_fill_color(Color::cyan);
 }
-
-//Cell* operator=(const Cell* rhs){
-//    return rhs;
-//}

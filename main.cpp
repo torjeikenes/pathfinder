@@ -8,8 +8,9 @@ int main(){
     int cellSize = 20;
     Loc start{2,2};
     Loc end{8,7};
-    Pathfinder pf{xcell,ycell,cellSize,start,end};
+    Vector<Loc> blocked{Loc{5,0},Loc{5,1},Loc{5,2},Loc{4,3},Loc{4,4}};
+    Pathfinder pf{xcell,ycell,cellSize,start,end,blocked};
     pf.dijkstra();
-    pf.wait_for_button();
+    //pf.wait_for_button();
 
 }

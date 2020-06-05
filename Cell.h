@@ -1,6 +1,5 @@
 #pragma once
 #include "Graph.h"
-#include "Simple_window.h"
 
 using namespace Graph_lib;
 
@@ -32,13 +31,13 @@ public:
     double getDist() {return distance;}
     Stat getStatus() {return status;}
     Loc getLoc() {return l;}
-    //Cell* operator=(const Cell* rhs);
+    void SetParent(Cell* p) {parent = p;}
+    Cell* getParent() {return parent;}
 };
 
-Cell* getMinDist(set<Cell*>& q);
 
-struct cellComp {
-    bool operator() (Cell* lhs, Cell* rhs) const {
-        return lhs->getDist() < rhs->getDist();
-    }
-};
+//struct cellComp {
+//    bool operator() (Cell* lhs, Cell* rhs) const {
+//        return lhs->getDist() < rhs->getDist();
+//    }
+//};
