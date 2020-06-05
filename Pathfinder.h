@@ -2,6 +2,7 @@
 #include "Cell.h"
 #include "Simple_window.h"
 #include "Window.h"
+#include "WaitWindow.h"
 #include <stdlib.h>     //for using the function sleep
 #include <unistd.h>
 #include <cmath>
@@ -11,7 +12,7 @@ class Pathfinder {
 private:
     int xcell, ycell, cellSize;
     Vector_ref<Cell> vr;
-    Simple_window win;
+    Wait_window win;
     //Graph_lib::Window win;
     Loc start;
     Loc end;
