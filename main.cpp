@@ -10,8 +10,5 @@ int main(){
     Loc end{8,7};
     Vector<Loc> blocked{Loc{5,0},Loc{5,1},Loc{5,2},Loc{4,3},Loc{4,4}};
     Pathfinder pf{xcell,ycell,cellSize,start,end,blocked};
-    pf.drawBlocked();
-    //pf.dijkstra();
-    //pf.wait_for_button();
-    //return gui_main();
+    pf.handleClicks();
 }

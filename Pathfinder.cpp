@@ -1,24 +1,20 @@
 #include "Pathfinder.h"
 
 Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
-    : xcell{x},ycell{y},cellSize{s},
-    Graph_lib::Window{Point{100,100},x*s+100,y*s+50,"Pathfinder"}, 
-    //Graph_lib::Window{Point{100,100},400,400,"Pathfinder"}, 
+    : Graph_lib::Window{Point{100,100},x*s+100,y*s+50,"Pathfinder"}, 
+    xcell{x},ycell{y},cellSize{s},
     start{start},end{end},blocked{blck},
     dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
     running{false},clicked{false},startPress{false},endPress{false}
     {
-    //Fills up the grid
-    //fillGrid();
+    //Fills up the grid and the que
     for (int j = 0;j<xcell;j++){
         for (int i = 0;i<ycell;i++){
             vr.push_back(new Cell{Point{i*cellSize,j*cellSize},cellSize,cellSize,Loc{i,j}});
-            //attach(vr[vr.size()-1]);
             attach(vr.back());
             q.insert(&vr.back());
         }
     }
-
 
     attach(dijkstraBt);
 
@@ -29,16 +25,11 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     for(auto b:blocked){
         getCell(b)->setBlocked();
     }
-    //resizable(nullptr);
-    //size_range(x_max(),y_max(),x_max(),y_max());
 
+    // Opens window
     show();
-    Fl::wait(1);
 }
 
-//Fills grid with cells and attaches to vr
-//void Pathfinder::fillGrid(){
-//}
 
 // Returns pointer to Cell with given loc
 Cell* Pathfinder::getCell(Loc l){
@@ -50,7 +41,7 @@ Cell* Pathfinder::getCell(Loc l){
         }
         return &vr[i];
     }
-    catch (exception& e){
+    catch (range_error& e){
         //std::cerr<<e.what();
         return nullptr;
     }
@@ -61,14 +52,6 @@ void Pathfinder::dijkstra(){
     auto cur = getCell(start);
     //curs distance is set to 0. The rest are infinite from the constructor
     cur->setDist(0);
-
-    // Makes set with all Cells
-    //set<Cell*> q;
-    //for(auto e:vr){
-    //    q.insert(e);
-    //};
-
-    //start window and wait 1 sec
 
 
     //Runs until the end cell has been visited
@@ -90,21 +73,35 @@ void Pathfinder::dijkstra(){
         cur->setVisited();
         q.erase(cur);
         getCell(start)->set_fill_color(Color::magenta);
-        //redraws window
-        flush();
-        //waits for 0.25 seconds
-        Fl::wait(0.15); 
-        //Sleep(2000);
-        //std::this_thread::sleep_for(std::chrono::milliseconds(10));
-        //win.wait_for_button();
+        flush(); //redraws window
+        Fl::wait(0.1); //waits for 0.1 seconds
     }
     //draws path from end to start
     drawPath(cur,getCell(start));
     getCell(end)->set_fill_color(Color::green);
     flush();
-    
-    //win.wait_for_button();
 }
+
+// Draws path by tracing the parent parent pointer
+void Pathfinder::drawPath(Cell* start,Cell* end){
+    Cell* c = start;
+    // Runs until c is at the end
+    while(c!=end){
+        //Changes color to yellow 
+        c->set_fill_color(Color::yellow);
+        //sets c to its own parrent
+        c=c->getParent();
+    }
+}
+
+//Handles click events while not running
+void Pathfinder::handleClicks(){
+    while(!running){
+        Fl::wait();
+        click();         
+    }
+}
+
 
 // Compares current cell with the cell with given offset and set distance
 void Pathfinder::compareCells(Cell* cur,int xOffset,int yOffset){
@@ -121,88 +118,6 @@ void Pathfinder::compareCells(Cell* cur,int xOffset,int yOffset){
     }
 }
 
-// Draws path by tracing the parent parent pointer
-void Pathfinder::drawPath(Cell* start,Cell* end){
-    Cell* c = start;
-    // Runs until c is at the end
-    while(c!=end){
-        //Changes color to yellow 
-        c->set_fill_color(Color::yellow);
-        //sets c to its own parrent
-        c=c->getParent();
-    }
-}
-
-void Pathfinder::drawBlocked(){
-    while(!running){
-        Fl::wait();
-        click();         
-    }
-}
-
-
-void Pathfinder::click(){
-    Point xy{Fl::event_x(),Fl::event_y()};
-    MouseButton mb = static_cast<MouseButton>(Fl::event_button());
-
-
-    if(Fl::event_buttons()>0 && inRange(xy)){
-        auto c = getCell(pntToLoc(xy));
-
-        switch (mb)
-        {
-        case MouseButton::left:
-            if(c->getLoc() == start){
-                startPress = true;
-            }
-            else if(c->getLoc() == end){
-                endPress = true;
-            }
-            else if(startPress){
-                setStart(c->getLoc());
-            }
-            else if(endPress){
-                setEnd(c->getLoc());
-            }
-            else{
-                c->setBlocked();
-            }
-            break;
-        case MouseButton::right:
-                c->setEmpty();
-            break;
-        }
-    flush();
-    }
-    else{
-        startPress = false;
-        endPress = false;
-    }
-}
-
-void Pathfinder::setStart(Loc l){
-    getCell(start)->setEmpty();
-    start=l;
-    getCell(start)->set_fill_color(Color::magenta);
-}
-
-void Pathfinder::setEnd(Loc l){
-    getCell(end)->setEmpty();
-    end=l;
-    getCell(end)->set_fill_color(Color::green);
-}
-
-void Pathfinder::cb_start(Address, Address addr){ 
-    static_cast<Pathfinder *>(addr)->strt();
-}
-
-void Pathfinder::strt() {
-    running = true;
-    dijkstra();
-    running = false;
-    drawBlocked();
-}
-
 //Returns the lowest distance in the set
 Cell* Pathfinder::getMinDist(){
     //e is set to the first element of the set
@@ -217,3 +132,77 @@ Cell* Pathfinder::getMinDist(){
     return e;
 }
 
+void Pathfinder::click(){
+    Point xy{Fl::event_x(),Fl::event_y()};//Mouse position
+    MouseButton mb = static_cast<MouseButton>(Fl::event_button()); // Mouse button
+
+    // If a mouse button is pressed and is inside grid
+    if(Fl::event_buttons()>0 && inRange(xy)){
+        // c is set to pointer to cell under mouse
+        auto c = getCell(pntToLoc(xy));
+
+        switch (mb)
+        {
+        case MouseButton::left:
+            //sets startPress and endPress to true for dragging
+            if(c->getLoc() == start){
+                startPress = true;
+            }
+            else if(c->getLoc() == end){
+                endPress = true;
+            }
+            // If startPress or endPress is true, it moves the start or end to 
+            // the new location of the mouse
+            else if(startPress){
+                setStart(c->getLoc());
+            }
+            else if(endPress){
+                setEnd(c->getLoc());
+            }
+            // Blocks cell under mouse
+            else{
+                c->setBlocked();
+            }
+            break;
+        case MouseButton::right:
+            // Empties cell under mouse
+            c->setEmpty();
+            break;
+        }
+        // reloads window
+        flush();
+    }
+    else{
+        //Stops dragging
+        startPress = false;
+        endPress = false;
+    }
+}
+
+//Changes start cell to the given location
+void Pathfinder::setStart(Loc l){
+    getCell(start)->setEmpty();
+    start=l;
+    getCell(start)->set_fill_color(Color::magenta);
+}
+
+//Changes end cell to the given location
+void Pathfinder::setEnd(Loc l){
+    getCell(end)->setEmpty();
+    end=l;
+    getCell(end)->set_fill_color(Color::green);
+}
+
+// Callback function from the start button
+void Pathfinder::cb_start(Address, Address addr){ 
+    static_cast<Pathfinder *>(addr)->strt();
+}
+
+//starts the algorithm 
+void Pathfinder::strt() {
+    running = true;
+    dijkstra();
+    running = false;
+    // runs handleClicks again to keep window open after completion
+    handleClicks();
+}
