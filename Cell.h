@@ -14,20 +14,21 @@ struct Loc{
     int y;
 };
 
-class Cell : public Rectangle {
+class Cell : public Graph_lib::Button {
     Loc l;
     double distance;
     Cell* parent;
     Stat status;
 public:
-    Cell(Point xy, int ww, int hh,Loc l) 
-        : Rectangle(xy,ww,hh),l{l},
+    Cell(Point xy, int ww, int hh,Loc l,Graph_lib::Callback cb) 
+        : Button(xy,ww,hh,"",cb),l{l},
         distance{std::numeric_limits<double>::infinity()},
         parent{nullptr},status{Stat::empty} { }
     void setBlocked();
     void setVisited();
     void setEmpty();
     void setDist(double d) {distance = d;}
+    void set_fill_color(Color c){pw->color(FL_RED);}
     double getDist() {return distance;}
     Stat getStatus() {return status;}
     Loc getLoc() {return l;}

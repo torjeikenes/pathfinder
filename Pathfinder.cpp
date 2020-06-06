@@ -2,11 +2,24 @@
 
 Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     : xcell{x},ycell{y},cellSize{s},
-    win{Point{100,100},xcell*cellSize,ycell*cellSize,"Pathfinder"}, 
-    start{start},end{end},blocked{blck}
+    Graph_lib::Window{Point{100,100},x*s+100,y*s+50,"Pathfinder"}, 
+    //Graph_lib::Window{Point{100,100},400,400,"Pathfinder"}, 
+    start{start},end{end},blocked{blck},
+    startbt{Point{x_max()-70,0},70,20,"Start",cb_start},
+    running{false}
     {
     //Fills up the grid
-    fillGrid();
+    //fillGrid();
+    for (int j = 0;j<xcell;j++){
+        for (int i = 0;i<ycell;i++){
+            vr.push_back(new Cell{Point{i*cellSize,j*cellSize},cellSize,cellSize,Loc{i,j},cb_click});
+            //attach(vr[vr.size()-1]);
+            attach(vr.back());
+        }
+    }
+
+    attach(startbt);
+
     //Color start and end
     getCell(start)->set_fill_color(Color::magenta);
     getCell(end)->set_fill_color(Color::green);
@@ -14,18 +27,14 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     for(auto b:blocked){
         getCell(b)->setBlocked();
     }
+    //resizable(nullptr);
+    //size_range(x_max(),y_max(),x_max(),y_max());
 
 }
 
 //Fills grid with cells and attaches to vr
-void Pathfinder::fillGrid(){
-    for (int j = 0;j<xcell;j++){
-        for (int i = 0;i<ycell;i++){
-            vr.push_back(new Cell{Point{i*cellSize,j*cellSize},cellSize,cellSize,Loc{i,j}});
-            win.attach(vr[vr.size()-1]);
-        }
-    }
-}
+//void Pathfinder::fillGrid(){
+//}
 
 // Returns pointer to Cell with given loc
 Cell* Pathfinder::getCell(Loc l){
@@ -56,8 +65,8 @@ void Pathfinder::dijkstra(){
     };
 
     //start window and wait 1 sec
-    win.show();
-    win.wait(1);
+    show();
+    Fl::wait(1);
 
 
     //Runs until the end cell has been visited
@@ -80,25 +89,29 @@ void Pathfinder::dijkstra(){
         q.erase(cur);
         getCell(start)->set_fill_color(Color::magenta);
         //redraws window
-        win.redraw();
+        redraw();
         //waits for 0.25 seconds
-        win.wait(0.25); 
+        Fl::wait(0.25); 
+        //Sleep(2000);
+        //std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        //win.wait_for_button();
     }
     //draws path from end to start
     drawPath(cur,getCell(start));
     getCell(end)->set_fill_color(Color::green);
-    win.redraw();
+    redraw();
     
-    win.wait_for_button();
+    //win.wait_for_button();
 }
 
 // Compares current cell with the cell with given offset and set distance
 void Pathfinder::compareCells(Cell* cur,int xOffset,int yOffset){
-    double dist =  sqrt(abs(xOffset)+abs(yOffset));
+    //double dist =  sqrt(abs(xOffset)+abs(yOffset));
+    double dist =  abs(xOffset)+abs(yOffset);
     auto next = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
     // Checks if cell is inside grid and is empty
     if(next!=nullptr && next->getStatus()==Stat::empty){
-        // assignes current distance + 1 if it is lower
+        // assignes current distance + cost if it is lower
         if(cur->getDist()+dist<next->getDist()){
             next->setDist(cur->getDist()+dist);
             next->SetParent(cur);
@@ -130,4 +143,24 @@ Cell* getMinDist(set<Cell*>& q){
         }
     }
     return e;
+}
+
+void Pathfinder::cb_click(Address, Address pw){
+    Point xy{Fl::event_x(),Fl::event_y()};
+    MouseButton mb = static_cast<MouseButton>(Fl::event_button());
+    auto& win = reference_to<Pathfinder>(pw);
+
+    if(!win.inRange(xy)){
+        return;
+    }
+    switch (mb)
+    {
+    case MouseButton::left:
+        win.getCell(win.pntToLoc(xy))->setBlocked();;
+        break;
+    case MouseButton::right:
+        win.getCell(win.pntToLoc(xy))->setEmpty();
+        break;
+    }
+    win.flush();
 }
