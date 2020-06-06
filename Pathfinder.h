@@ -4,8 +4,6 @@
 #include "Window.h"
 #include "WaitWindow.h"
 #include <cmath>
-#include <chrono>
-#include <thread>
 
 
 enum class MouseButton { left = FL_LEFT_MOUSE, right = FL_RIGHT_MOUSE};
@@ -22,6 +20,7 @@ private:
     bool endPress;
     Vector<Cell*> route;
     set<Cell*> q;
+    Vector<Cell*> visited;
 
     void compareCells(Cell* cur,int xOffset,int yOffset);
     Cell* getMinDist();
@@ -30,6 +29,8 @@ private:
     void setEnd(Loc l);
     static void cb_start(Address, Address addr);
     void strt();
+    static void cb_clear(Address, Address addr);
+    void clear();
 
     int Width() const { return xcell*cellSize;}
     int Height() const { return ycell*cellSize;}
@@ -43,6 +44,7 @@ public:
     void handleClicks();
 
     Button dijkstraBt;
+    Button clearBt;
 };
 
 

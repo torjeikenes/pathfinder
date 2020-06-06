@@ -5,7 +5,8 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     xcell{x},ycell{y},cellSize{s},
     start{start},end{end},blocked{blck},
     running{false},startPress{false},endPress{false},
-    dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start}
+    dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
+    clearBt{Point{x_max()-70,25},70,20,"Clear",cb_clear}
     {
     //Fills up the grid and the que
     for (int j = 0;j<xcell;j++){
@@ -17,6 +18,7 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     }
 
     attach(dijkstraBt);
+    attach(clearBt);
 
     //Color start and end
     getCell(start)->set_fill_color(Color::magenta);
@@ -71,6 +73,7 @@ void Pathfinder::dijkstra(){
 
         // Done with current so its set to visited and removed from q
         cur->setVisited();
+        visited.push_back(cur);
         q.erase(cur);
         getCell(start)->set_fill_color(Color::magenta);
         flush(); //redraws window
@@ -205,4 +208,29 @@ void Pathfinder::strt() {
     running = false;
     // runs handleClicks again to keep window open after completion
     handleClicks();
+}
+
+void Pathfinder::cb_clear(Address, Address addr){ 
+    static_cast<Pathfinder *>(addr)->clear();
+}
+
+void Pathfinder::clear() {
+    //Set all visited cells to empty
+    for(auto c:visited){
+        c->setEmpty();
+    }
+    visited.clear();
+    //redraw window
+    flush();
+    //Color start and end
+    getCell(start)->set_fill_color(Color::magenta);
+    getCell(end)->set_fill_color(Color::green);
+
+    q.clear();
+    for(auto e:vr){
+        e->setDist(std::numeric_limits<double>::infinity());
+        q.insert(e);
+    };
+
+
 }
