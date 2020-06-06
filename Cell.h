@@ -12,6 +12,7 @@ enum class Stat{
 struct Loc{
     int x;
     int y;
+    bool operator==(Loc& rhs){ return x==rhs.x && y == rhs.y;}
 };
 
 class Cell : public Graph_lib::Rectangle {

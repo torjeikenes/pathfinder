@@ -5,8 +5,8 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     Graph_lib::Window{Point{100,100},x*s+100,y*s+50,"Pathfinder"}, 
     //Graph_lib::Window{Point{100,100},400,400,"Pathfinder"}, 
     start{start},end{end},blocked{blck},
-    startbt{Point{x_max()-70,0},70,20,"Start",cb_start},
-    running{false}
+    dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
+    running{false},clicked{false},startPress{false},endPress{false}
     {
     //Fills up the grid
     //fillGrid();
@@ -20,7 +20,7 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     }
 
 
-    attach(startbt);
+    attach(dijkstraBt);
 
     //Color start and end
     getCell(start)->set_fill_color(Color::magenta);
@@ -146,20 +146,50 @@ void Pathfinder::click(){
     MouseButton mb = static_cast<MouseButton>(Fl::event_button());
 
 
-    if(Fl::event_buttons()>0){
+    if(Fl::event_buttons()>0 && inRange(xy)){
+        auto c = getCell(pntToLoc(xy));
+
         switch (mb)
         {
         case MouseButton::left:
-            if(inRange(xy))
-                getCell(pntToLoc(xy))->setBlocked();
+            if(c->getLoc() == start){
+                startPress = true;
+            }
+            else if(c->getLoc() == end){
+                endPress = true;
+            }
+            else if(startPress){
+                setStart(c->getLoc());
+            }
+            else if(endPress){
+                setEnd(c->getLoc());
+            }
+            else{
+                c->setBlocked();
+            }
             break;
         case MouseButton::right:
-            if(inRange(xy))
-                getCell(pntToLoc(xy))->setEmpty();
+                c->setEmpty();
             break;
         }
-        flush();
+    flush();
     }
+    else{
+        startPress = false;
+        endPress = false;
+    }
+}
+
+void Pathfinder::setStart(Loc l){
+    getCell(start)->setEmpty();
+    start=l;
+    getCell(start)->set_fill_color(Color::magenta);
+}
+
+void Pathfinder::setEnd(Loc l){
+    getCell(end)->setEmpty();
+    end=l;
+    getCell(end)->set_fill_color(Color::green);
 }
 
 void Pathfinder::cb_start(Address, Address addr){ 
@@ -187,24 +217,3 @@ Cell* Pathfinder::getMinDist(){
     return e;
 }
 
-
-//void Pathfinder::cb_click(Address, Address pw){
-//    Point xy{Fl::event_x(),Fl::event_y()};
-//    MouseButton mb = static_cast<MouseButton>(Fl::event_button());
-//    auto& win = reference_to<Pathfinder>(pw);
-//
-//    if(!win.inRange(xy)){
-//        return;
-//    }
-//    switch (mb)
-//    {
-//    case MouseButton::left:
-//        win.getCell(win.pntToLoc(xy))->setBlocked();;
-//        break;
-//    case MouseButton::right:
-//        win.getCell(win.pntToLoc(xy))->setEmpty();
-//        break;
-//    }
-//    win.flush();
-//}
-//

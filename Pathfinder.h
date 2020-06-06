@@ -23,10 +23,15 @@ private:
     Vector<Loc> blocked;
     bool running;
     bool clicked;
+    bool startPress;
+    bool endPress;
+
     void fillGrid();
     void compareCells(Cell* cur,int xOffset,int yOffset);
     Cell* getMinDist();
     Loc pntToLoc(Point xy) {return Loc{xy.x/cellSize,xy.y/cellSize};}
+    void setStart(Loc l);
+    void setEnd(Loc l);
 
     int Width() const { return xcell*cellSize;}
     int Height() const { return ycell*cellSize;}
@@ -44,7 +49,7 @@ public:
     void drawPath(Cell* start,Cell* end);
     void drawBlocked();
 
-    Button startbt;
+    Button dijkstraBt;
 };
 
 
