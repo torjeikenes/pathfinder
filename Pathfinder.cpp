@@ -12,11 +12,13 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     //fillGrid();
     for (int j = 0;j<xcell;j++){
         for (int i = 0;i<ycell;i++){
-            vr.push_back(new Cell{Point{i*cellSize,j*cellSize},cellSize,cellSize,Loc{i,j},cb_click});
+            vr.push_back(new Cell{Point{i*cellSize,j*cellSize},cellSize,cellSize,Loc{i,j}});
             //attach(vr[vr.size()-1]);
             attach(vr.back());
+            q.insert(&vr.back());
         }
     }
+
 
     attach(startbt);
 
@@ -30,6 +32,8 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     //resizable(nullptr);
     //size_range(x_max(),y_max(),x_max(),y_max());
 
+    show();
+    Fl::wait(1);
 }
 
 //Fills grid with cells and attaches to vr
@@ -59,20 +63,18 @@ void Pathfinder::dijkstra(){
     cur->setDist(0);
 
     // Makes set with all Cells
-    set<Cell*> q;
-    for(auto e:vr){
-        q.insert(e);
-    };
+    //set<Cell*> q;
+    //for(auto e:vr){
+    //    q.insert(e);
+    //};
 
     //start window and wait 1 sec
-    show();
-    Fl::wait(1);
 
 
     //Runs until the end cell has been visited
     while(getCell(end)->getStatus()!=Stat::visited){
         //The current cell is set to the cell with the lowest distance in q
-        cur = getMinDist(q);
+        cur = getMinDist();
 
         //checks all directions
         compareCells(cur,-1,-1);// up left
@@ -89,9 +91,9 @@ void Pathfinder::dijkstra(){
         q.erase(cur);
         getCell(start)->set_fill_color(Color::magenta);
         //redraws window
-        redraw();
+        flush();
         //waits for 0.25 seconds
-        Fl::wait(0.25); 
+        Fl::wait(0.15); 
         //Sleep(2000);
         //std::this_thread::sleep_for(std::chrono::milliseconds(10));
         //win.wait_for_button();
@@ -99,7 +101,7 @@ void Pathfinder::dijkstra(){
     //draws path from end to start
     drawPath(cur,getCell(start));
     getCell(end)->set_fill_color(Color::green);
-    redraw();
+    flush();
     
     //win.wait_for_button();
 }
@@ -131,8 +133,48 @@ void Pathfinder::drawPath(Cell* start,Cell* end){
     }
 }
 
+void Pathfinder::drawBlocked(){
+    while(!running){
+        Fl::wait();
+        click();         
+    }
+}
+
+
+void Pathfinder::click(){
+    Point xy{Fl::event_x(),Fl::event_y()};
+    MouseButton mb = static_cast<MouseButton>(Fl::event_button());
+
+
+    if(Fl::event_buttons()>0){
+        switch (mb)
+        {
+        case MouseButton::left:
+            if(inRange(xy))
+                getCell(pntToLoc(xy))->setBlocked();
+            break;
+        case MouseButton::right:
+            if(inRange(xy))
+                getCell(pntToLoc(xy))->setEmpty();
+            break;
+        }
+        flush();
+    }
+}
+
+void Pathfinder::cb_start(Address, Address addr){ 
+    static_cast<Pathfinder *>(addr)->strt();
+}
+
+void Pathfinder::strt() {
+    running = true;
+    dijkstra();
+    running = false;
+    drawBlocked();
+}
+
 //Returns the lowest distance in the set
-Cell* getMinDist(set<Cell*>& q){
+Cell* Pathfinder::getMinDist(){
     //e is set to the first element of the set
     auto e = *(q.begin());
     //Checks all elements if if has lower distance than e and 
@@ -145,22 +187,24 @@ Cell* getMinDist(set<Cell*>& q){
     return e;
 }
 
-void Pathfinder::cb_click(Address, Address pw){
-    Point xy{Fl::event_x(),Fl::event_y()};
-    MouseButton mb = static_cast<MouseButton>(Fl::event_button());
-    auto& win = reference_to<Pathfinder>(pw);
 
-    if(!win.inRange(xy)){
-        return;
-    }
-    switch (mb)
-    {
-    case MouseButton::left:
-        win.getCell(win.pntToLoc(xy))->setBlocked();;
-        break;
-    case MouseButton::right:
-        win.getCell(win.pntToLoc(xy))->setEmpty();
-        break;
-    }
-    win.flush();
-}
+//void Pathfinder::cb_click(Address, Address pw){
+//    Point xy{Fl::event_x(),Fl::event_y()};
+//    MouseButton mb = static_cast<MouseButton>(Fl::event_button());
+//    auto& win = reference_to<Pathfinder>(pw);
+//
+//    if(!win.inRange(xy)){
+//        return;
+//    }
+//    switch (mb)
+//    {
+//    case MouseButton::left:
+//        win.getCell(win.pntToLoc(xy))->setBlocked();;
+//        break;
+//    case MouseButton::right:
+//        win.getCell(win.pntToLoc(xy))->setEmpty();
+//        break;
+//    }
+//    win.flush();
+//}
+//

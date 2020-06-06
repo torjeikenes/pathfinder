@@ -4,6 +4,7 @@
 void Cell::setEmpty(){
     status = Stat::empty;
     set_fill_color(Color::gray);
+    
 }
 
 void Cell::setBlocked(){
