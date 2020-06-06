@@ -1,11 +1,11 @@
 #include "Pathfinder.h"
 
 Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
-    : Graph_lib::Window{Point{100,100},x*s+100,y*s+50,"Pathfinder"}, 
+    : Graph_lib::Window{Point{100,100},x*s+70,y*s,"Pathfinder"}, 
     xcell{x},ycell{y},cellSize{s},
     start{start},end{end},blocked{blck},
-    dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
-    running{false},clicked{false},startPress{false},endPress{false}
+    running{false},startPress{false},endPress{false},
+    dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start}
     {
     //Fills up the grid and the que
     for (int j = 0;j<xcell;j++){

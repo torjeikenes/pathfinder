@@ -18,7 +18,6 @@ private:
     Loc end;
     Vector<Loc> blocked;
     bool running;
-    bool clicked;
     bool startPress;
     bool endPress;
     Vector<Cell*> route;
