@@ -3,8 +3,6 @@
 #include "Simple_window.h"
 #include "Window.h"
 #include "WaitWindow.h"
-#include <stdlib.h>     //for using the function sleep
-#include <unistd.h>
 #include <cmath>
 
 
