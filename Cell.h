@@ -14,7 +14,7 @@ struct Loc{
     int y;
 };
 
-class Cell : public Rectangle {
+class Cell : public Graph_lib::Rectangle {
     Loc l;
     double distance;
     Cell* parent;
@@ -28,6 +28,7 @@ public:
     void setVisited();
     void setEmpty();
     void setDist(double d) {distance = d;}
+    //void set_fill_color(Color c){pw->color(FL_RED);}
     double getDist() {return distance;}
     Stat getStatus() {return status;}
     Loc getLoc() {return l;}
