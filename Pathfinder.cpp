@@ -6,7 +6,8 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     start{start},end{end},blocked{blck},
     running{false},startPress{false},endPress{false},
     dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
-    clearBt{Point{x_max()-70,25},70,20,"Clear",cb_clear}
+    clearBt{Point{x_max()-70,25},70,20,"Clear",cb_clear},
+    mazeBt{Point{x_max()-70,50},70,20,"Maze",cb_maze}
     {
     //Fills up the grid and the que
     for (int j = 0;j<xcell;j++){
@@ -19,6 +20,7 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
 
     attach(dijkstraBt);
     attach(clearBt);
+    attach(mazeBt);
 
     //Color start and end
     getCell(start)->set_fill_color(Color::magenta);
@@ -239,15 +241,16 @@ void Pathfinder::clear() {
 }
 
 void Pathfinder::mazeGen(){
-    show();
+    clear();
     Loc last = end;
     setEnd(Loc(xcell-1,ycell-1));
 
+    // Set all cells to blocked
     for(auto c:vr){
         c->setBlocked();
     }
 
-    stack<Cell*> st; // stack instead of recursionn
+    stack<Cell*> st; // stack for visited cells
     Cell* nxt; // Next cell
     Cell* cur; // Current cell
 
@@ -256,7 +259,6 @@ void Pathfinder::mazeGen(){
     flush(); // Refresh window
 
     while(st.size()>0){
-        cout << st.size() << endl;
         cur = st.top(); // set the current cell to the cell of stack
         st.pop(); // and delete it from the stack
 
@@ -320,4 +322,9 @@ Cell* Pathfinder::openCell(Cell* cur,int xOffset,int yOffset){
         // Return nullptr if wall is outside grid or not blocked
         return nullptr;
     }
+}
+
+// Maze button callback
+void Pathfinder::cb_maze(Address, Address addr){
+    static_cast<Pathfinder *>(addr)->mazeGen();
 }

@@ -33,6 +33,7 @@ private:
     static void cb_clear(Address, Address addr);
     void clear();
     Cell* openCell(Cell* cur,int xOffset,int yOffset);
+    static void cb_maze(Address, Address addr);
 
     int Width() const { return xcell*cellSize;}
     int Height() const { return ycell*cellSize;}
@@ -48,6 +49,7 @@ public:
 
     Button dijkstraBt;
     Button clearBt;
+    Button mazeBt;
 };
 
 
