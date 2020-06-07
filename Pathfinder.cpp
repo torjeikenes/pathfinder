@@ -30,6 +30,8 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
 
     // Opens window
     show();
+
+    srand((unsigned) time(0));
 }
 
 
@@ -62,13 +64,13 @@ void Pathfinder::dijkstra(){
         cur = getMinDist();
 
         //checks all directions
-        compareCells(cur,-1,-1);// up left
+        //compareCells(cur,-1,-1);// up left
         compareCells(cur,0,-1);// up
-        compareCells(cur,1,-1);// up right
+        //compareCells(cur,1,-1);// up right
         compareCells(cur,1,0); // right
-        compareCells(cur,1,1); // down right
+        //compareCells(cur,1,1); // down right
         compareCells(cur,0,1); // down
-        compareCells(cur,-1,1); // down left
+        //compareCells(cur,-1,1); // down left
         compareCells(cur,-1,0);// left
 
         // Done with current so its set to visited and removed from q
@@ -234,5 +236,73 @@ void Pathfinder::clear() {
         q.insert(e);
     };
 
-
 }
+
+void Pathfinder::mazeGen(){
+    for(auto c:vr){
+        c->setBlocked();
+    }
+    show();
+    setEnd(Loc(xcell-1,ycell-1));
+
+    Cell* nxt;
+    stack<Cell*> st;
+    vector<Cell*> nb;
+    st.push(getCell(start));
+    st.top()->setEmpty();
+    Cell* cur;
+
+    while(st.size()>0){
+        cur = st.top();
+        st.pop();
+        vector<pair<int,int>> dir{make_pair(0,1),make_pair(1,0),
+                                  make_pair(0,-1),make_pair(-1,0)};
+
+        do{
+            int i = rand() % dir.size();
+            auto d = dir[i];
+            dir.erase(dir.begin()+i);
+            nxt = openCell(cur,d.first,d.second);
+        }
+        while(nxt == nullptr && dir.size()>0 );
+        if(nxt!= nullptr){
+            //cur->set_fill_color(Color::gray);
+            //nxt->set_fill_color(Color::dark_yellow);
+            st.push(cur);
+            st.push(nxt);
+            Fl::wait(.25);
+            flush();
+        }
+    }
+}
+
+Cell* Pathfinder::openCell(Cell* cur,int xOffset,int yOffset){
+    auto wall = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
+    // Checks if cell is inside grid and is empty
+    if(wall!=nullptr && wall->getStatus()==Stat::blocked){
+        auto next = getCell(Loc{wall->getLoc().x+xOffset,wall->getLoc().y+yOffset});
+        if(next!=nullptr && next->getStatus()==Stat::blocked){
+            //next->set_fill_color(Color::blue);
+            wall->setEmpty();
+            next->setEmpty();
+            return next;
+        }
+        else{
+            return nullptr;
+        }
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
+
+
+//Cell* Pathfinder::checkCell(Cell* cur,int xOffset,int yOffset){
+//    auto next = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
+//    // Checks if cell is inside grid and is empty
+//    if(next!=nullptr && next->getStatus()==Stat::blocked){
+//        return next;
+//    }
+//}

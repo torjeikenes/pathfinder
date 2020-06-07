@@ -13,6 +13,7 @@ struct Loc{
     int x;
     int y;
     bool operator==(Loc& rhs){ return x==rhs.x && y == rhs.y;}
+    Loc(int x, int y) : x{x}, y{y} {}
 };
 
 class Cell : public Graph_lib::Rectangle {
