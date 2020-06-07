@@ -3,18 +3,21 @@
 
 using namespace Graph_lib;
 
+
 enum class Stat{
     empty,
     visited,
     blocked
 };
 
+// struct for grid location
 struct Loc{
     int x;
     int y;
     bool operator==(Loc& rhs){ return x==rhs.x && y == rhs.y;}
     Loc(int x, int y) : x{x}, y{y} {}
 };
+
 
 class Cell : public Graph_lib::Rectangle {
     Loc l;
@@ -37,10 +40,3 @@ public:
     void SetParent(Cell* p) {parent = p;}
     Cell* getParent() {return parent;}
 };
-
-
-//struct cellComp {
-//    bool operator() (Cell* lhs, Cell* rhs) const {
-//        return lhs->getDist() < rhs->getDist();
-//    }
-//};

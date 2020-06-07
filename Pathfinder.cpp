@@ -239,70 +239,85 @@ void Pathfinder::clear() {
 }
 
 void Pathfinder::mazeGen(){
+    show();
+    Loc last = end;
+    setEnd(Loc(xcell-1,ycell-1));
+
     for(auto c:vr){
         c->setBlocked();
     }
-    show();
-    setEnd(Loc(xcell-1,ycell-1));
 
-    Cell* nxt;
-    stack<Cell*> st;
-    vector<Cell*> nb;
-    st.push(getCell(start));
-    st.top()->setEmpty();
-    Cell* cur;
+    stack<Cell*> st; // stack instead of recursionn
+    Cell* nxt; // Next cell
+    Cell* cur; // Current cell
+
+    st.push(getCell(start)); //Add first cell to the que stack
+    st.top()->setEmpty(); // set the first cell to empty
+    flush(); // Refresh window
 
     while(st.size()>0){
-        cur = st.top();
-        st.pop();
+        cout << st.size() << endl;
+        cur = st.top(); // set the current cell to the cell of stack
+        st.pop(); // and delete it from the stack
+
+        // Vector with directions
         vector<pair<int,int>> dir{make_pair(0,1),make_pair(1,0),
                                   make_pair(0,-1),make_pair(-1,0)};
 
         do{
-            int i = rand() % dir.size();
+            // Choose a random direction and delete it from the direction vector
+            int i = rand() % dir.size(); 
             auto d = dir[i];
             dir.erase(dir.begin()+i);
+
+            // Try to open wall and cell in the chosen direction
             nxt = openCell(cur,d.first,d.second);
         }
-        while(nxt == nullptr && dir.size()>0 );
-        if(nxt!= nullptr){
-            //cur->set_fill_color(Color::gray);
-            //nxt->set_fill_color(Color::dark_yellow);
+        // Runs until a direction is inside grid or no direction is possible
+        while(nxt == nullptr && dir.size()>0 ); 
+
+        // If a direction is possible
+        if(nxt != nullptr){
+            //add current and next position to the stack
             st.push(cur);
             st.push(nxt);
-            Fl::wait(.25);
-            flush();
+
+            Fl::wait(.1);// wait
+
+            // Set cur cell to last cell 
+            last = cur->getLoc();
+            flush(); 
         }
     }
+    // Set start and end to make them visible
+    setStart(start);
+    setEnd(last);
+    flush();
 }
 
+// Open wall and cell in given direction or return nullptr if not possible
 Cell* Pathfinder::openCell(Cell* cur,int xOffset,int yOffset){
+    // Wall cell is the cell next to the current cell in the given direction
     auto wall = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
-    // Checks if cell is inside grid and is empty
+    // Checks if wall is inside grid and is blocked
     if(wall!=nullptr && wall->getStatus()==Stat::blocked){
+        // Next cell is the cell next to the wall cell in the given direction
         auto next = getCell(Loc{wall->getLoc().x+xOffset,wall->getLoc().y+yOffset});
+        // Checks if next cell is inside grid and is blocked
         if(next!=nullptr && next->getStatus()==Stat::blocked){
-            //next->set_fill_color(Color::blue);
+            // set wall and cell to empty 
             wall->setEmpty();
             next->setEmpty();
             return next;
         }
         else{
-            return nullptr;
+            // Return nullptr if cell is outside grid or not blocked
+            return nullptr; 
         }
     }
     else
     {
+        // Return nullptr if wall is outside grid or not blocked
         return nullptr;
     }
 }
-
-
-
-//Cell* Pathfinder::checkCell(Cell* cur,int xOffset,int yOffset){
-//    auto next = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
-//    // Checks if cell is inside grid and is empty
-//    if(next!=nullptr && next->getStatus()==Stat::blocked){
-//        return next;
-//    }
-//}
