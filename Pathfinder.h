@@ -4,6 +4,7 @@
 #include "Window.h"
 #include "WaitWindow.h"
 #include <cmath>
+#include <stack>
 
 
 enum class MouseButton { left = FL_LEFT_MOUSE, right = FL_RIGHT_MOUSE};
@@ -31,6 +32,8 @@ private:
     void strt();
     static void cb_clear(Address, Address addr);
     void clear();
+    Cell* openCell(Cell* cur,int xOffset,int yOffset);
+    static void cb_maze(Address, Address addr);
 
     int Width() const { return xcell*cellSize;}
     int Height() const { return ycell*cellSize;}
@@ -42,9 +45,11 @@ public:
     void dijkstra();
     void drawPath(Cell* start,Cell* end);
     void handleClicks();
+    void mazeGen();
 
     Button dijkstraBt;
     Button clearBt;
+    Button mazeBt;
 };
 
 
