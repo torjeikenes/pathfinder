@@ -73,7 +73,7 @@ void Pathfinder::dijkstra(){
 
         // Done with current so its set to visited and removed from q
         cur->setVisited();
-        visited.push_back(cur);
+        searched.push_back(cur);
         q.erase(cur);
         getCell(start)->set_fill_color(Color::magenta);
         flush(); //redraws window
@@ -113,6 +113,8 @@ void Pathfinder::compareCells(Cell* cur,int xOffset,int yOffset){
     auto next = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
     // Checks if cell is inside grid and is empty
     if(next!=nullptr && next->getStatus()==Stat::empty){
+        next->set_fill_color(Color::blue);
+        searched.push_back(next);
         // assignes current distance + cost if it is lower
         if(cur->getDist()+dist<next->getDist()){
             next->setDist(cur->getDist()+dist);
@@ -215,11 +217,11 @@ void Pathfinder::cb_clear(Address, Address addr){
 }
 
 void Pathfinder::clear() {
-    //Set all visited cells to empty
-    for(auto c:visited){
+    //Set all searched cells to empty
+    for(auto c:searched){
         c->setEmpty();
     }
-    visited.clear();
+    searched.clear();
     //redraw window
     flush();
     //Color start and end

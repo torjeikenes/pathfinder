@@ -20,7 +20,7 @@ private:
     bool endPress;
     Vector<Cell*> route;
     set<Cell*> q;
-    Vector<Cell*> visited;
+    Vector<Cell*> searched;
 
     void compareCells(Cell* cur,int xOffset,int yOffset);
     Cell* getMinDist();
