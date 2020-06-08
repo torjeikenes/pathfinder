@@ -6,8 +6,9 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     start{start},end{end},blocked{blck},
     running{false},startPress{false},endPress{false},
     dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
-    clearBt{Point{x_max()-70,25},70,20,"Clear",cb_clear},
-    mazeBt{Point{x_max()-70,50},70,20,"Maze",cb_maze}
+    AstBt{Point{x_max()-70,25},70,20,"A*",cb_ast},
+    mazeBt{Point{x_max()-70,50},70,20,"Maze",cb_maze},
+    clearBt{Point{x_max()-70,75},70,20,"Clear",cb_clear}
     {
     //Fills up the grid and the que
     for (int j = 0;j<xcell;j++){
@@ -19,6 +20,7 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     }
 
     attach(dijkstraBt);
+    attach(AstBt);
     attach(clearBt);
     attach(mazeBt);
 
@@ -112,7 +114,8 @@ void Pathfinder::handleClicks(){
 
 // Compares current cell with the cell with given offset and set distance
 void Pathfinder::compareCells(Cell* cur,int xOffset,int yOffset){
-    int dist =  sqrt(abs(xOffset*10)+abs(yOffset*10));
+    int d = 10; // multiplier for minimum cost
+    int dist =  sqrt(abs(xOffset*d)+abs(yOffset*d));
     //int dist =  abs(xOffset*10)+abs(yOffset*10);
     auto next = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
     // Checks if cell is inside grid and is empty
@@ -235,6 +238,7 @@ void Pathfinder::clear() {
     q.clear();
     for(auto e:vr){
         e->setDist(std::numeric_limits<int>::max());
+        e->setCost(std::numeric_limits<int>::max());
         q.insert(e);
     };
 
@@ -329,27 +333,33 @@ void Pathfinder::cb_maze(Address, Address addr){
     static_cast<Pathfinder *>(addr)->mazeGen();
 }
 
+// Astar button callback
+void Pathfinder::cb_ast(Address, Address addr){
+    static_cast<Pathfinder *>(addr)->aStar();
+}
+
 void Pathfinder::aStar(){ 
     // the current cell is set to the start location
     auto cur = getCell(start);
     //curs distance is set to 0. The rest are infinite from the constructor
     cur->setDist(0);
+    cur->setCost(0+manhattan(cur));
 
 
     //Runs until the end cell has been visited
     while(getCell(end)->getStatus()!=Stat::visited){
         //The current cell is set to the cell with the lowest distance in q
-        cur = getMinDist();
+        cur = getMinCost();
 
         //checks all directions
-        //compareCells(cur,-1,-1);// up left
-        compareCells(cur,0,-1);// up
-        //compareCells(cur,1,-1);// up right
-        compareCells(cur,1,0); // right
-        //compareCells(cur,1,1); // down right
-        compareCells(cur,0,1); // down
-        //compareCells(cur,-1,1); // down left
-        compareCells(cur,-1,0);// left
+        //compareCellsAst(cur,-1,-1);// up left
+        compareCellsAst(cur,0,-1);// up
+        //compareCellsAst(cur,1,-1);// up right
+        compareCellsAst(cur,1,0); // right
+        //compareCellsAst(cur,1,1); // down right
+        compareCellsAst(cur,0,1); // down
+        //compareCellsAst(cur,-1,1); // down left
+        compareCellsAst(cur,-1,0);// left
 
         // Done with current so its set to visited and removed from q
         cur->setVisited();
@@ -365,6 +375,52 @@ void Pathfinder::aStar(){
     flush();
 }
 
-double heuristic(Cell* c){
-    
+//Returns manhattan distance between cell and end
+int Pathfinder::manhattan(Cell* c){
+    int d = 10; // multiplier for minimum cost
+    Loc cxy = c->getLoc();
+
+    int dx = abs(cxy.x-end.x);
+    int dy = abs(cxy.y-end.y);
+    return d*(dx + dy);
+}
+
+//Returns the lowest cost in the set
+Cell* Pathfinder::getMinCost(){
+    //e is set to the first element of the set
+    auto e = *(q.begin());
+    //Checks all elements if if has lower distance than e and 
+    //sets itself to e
+    for(auto c:q){
+        if(c->getCost() < e->getCost()){
+            e = c;
+        }
+        else if((c->getCost()==e->getCost()) && (manhattan(c)< manhattan(e))){
+            e = c;
+        }
+    }
+    return e;
+}
+
+// Compares current cell with the cell with given offset and set distance
+void Pathfinder::compareCellsAst(Cell* cur,int xOffset,int yOffset){
+    int d = 10; // multiplier for minimum cost
+    //int mvCost =  sqrt(abs(xOffset*d)+abs(yOffset*d));
+    int mvCost =  abs(xOffset*d)+abs(yOffset*d);
+
+    //int dist =  abs(xOffset*10)+abs(yOffset*10);
+    auto next = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
+    flush();
+    // Checks if cell is inside grid and is empty
+    if(next!=nullptr && next->getStatus()==Stat::empty){
+        next->set_fill_color(Color::blue);
+        int manh = manhattan(next);
+        searched.push_back(next);
+        // assignes current distance + cost if it is lower
+        if(cur->getCost() + mvCost < next->getCost()){
+            next->setDist(cur->getDist() + mvCost);
+            next->setCost(next->getDist() + manh);
+            next->SetParent(cur);
+        }
+    }
 }

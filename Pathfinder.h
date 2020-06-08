@@ -34,6 +34,10 @@ private:
     void clear();
     Cell* openCell(Cell* cur,int xOffset,int yOffset);
     static void cb_maze(Address, Address addr);
+    int manhattan(Cell* c);
+    Cell* getMinCost();
+    void compareCellsAst(Cell* cur,int xOffset,int yOffset);
+    static void cb_ast(Address, Address addr);
 
     int Width() const { return xcell*cellSize;}
     int Height() const { return ycell*cellSize;}
@@ -49,8 +53,9 @@ public:
     void mazeGen();
 
     Button dijkstraBt;
-    Button clearBt;
+    Button AstBt;
     Button mazeBt;
+    Button clearBt;
 };
 
 
