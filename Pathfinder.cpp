@@ -8,7 +8,10 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
     AstBt{Point{x_max()-70,25},70,20,"A*",cb_ast},
     mazeBt{Point{x_max()-70,50},70,20,"Maze",cb_maze},
-    clearBt{Point{x_max()-70,75},70,20,"Clear",cb_clear}
+    clearBt{Point{x_max()-70,75},70,20,"Clear",cb_clear},
+    moveCtr{0},
+    moves{Point{x_max()-70,114},"Moves: 0"},
+    mvBg{Point{x_max()-70,100},70,20}
     {
     //Fills up the grid and the que
     for (int j = 0;j<xcell;j++){
@@ -19,10 +22,15 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
         }
     }
 
+    moves.set_color(Color::black);
+    mvBg.set_fill_color(Color::gray);
+
     attach(dijkstraBt);
     attach(AstBt);
     attach(clearBt);
     attach(mazeBt);
+    attach(mvBg);
+    attach(moves);
 
     //Color start and end
     getCell(start)->set_fill_color(Color::magenta);
@@ -66,6 +74,7 @@ void Pathfinder::dijkstra(){
     while(getCell(end)->getStatus()!=Stat::visited){
         //The current cell is set to the cell with the lowest distance in q
         cur = getMinDist();
+        addMove();
 
         //checks all directions
         //compareCells(cur,-1,-1);// up left
@@ -229,8 +238,6 @@ void Pathfinder::clear() {
         c->setEmpty();
     }
     searched.clear();
-    //redraw window
-    flush();
     //Color start and end
     getCell(start)->set_fill_color(Color::magenta);
     getCell(end)->set_fill_color(Color::green);
@@ -241,7 +248,11 @@ void Pathfinder::clear() {
         e->setCost(std::numeric_limits<int>::max());
         q.insert(e);
     };
+    moveCtr = 0;
+    moves.set_label("Moves: 0");
 
+    //redraw window
+    redraw();
 }
 
 void Pathfinder::mazeGen(){
@@ -350,6 +361,7 @@ void Pathfinder::aStar(){
     while(getCell(end)->getStatus()!=Stat::visited){
         //The current cell is set to the cell with the lowest distance in q
         cur = getMinCost();
+        addMove();
 
         //checks all directions
         //compareCellsAst(cur,-1,-1);// up left
@@ -389,12 +401,13 @@ int Pathfinder::manhattan(Cell* c){
 Cell* Pathfinder::getMinCost(){
     //e is set to the first element of the set
     auto e = *(q.begin());
-    //Checks all elements if if has lower distance than e and 
+    //Checks all elements if if has lower cost than e and 
     //sets itself to e
     for(auto c:q){
         if(c->getCost() < e->getCost()){
             e = c;
         }
+        // If the cost is the same, the shortest manhattan distance is prioritized 
         else if((c->getCost()==e->getCost()) && (manhattan(c)< manhattan(e))){
             e = c;
         }
@@ -405,7 +418,6 @@ Cell* Pathfinder::getMinCost(){
 // Compares current cell with the cell with given offset and set distance
 void Pathfinder::compareCellsAst(Cell* cur,int xOffset,int yOffset){
     int d = 10; // multiplier for minimum cost
-    //int mvCost =  sqrt(abs(xOffset*d)+abs(yOffset*d));
     int mvCost =  abs(xOffset*d)+abs(yOffset*d);
 
     //int dist =  abs(xOffset*10)+abs(yOffset*10);
@@ -423,4 +435,9 @@ void Pathfinder::compareCellsAst(Cell* cur,int xOffset,int yOffset){
             next->SetParent(cur);
         }
     }
+}
+
+void Pathfinder::addMove(){
+    moveCtr++;
+    moves.set_label("Moves: " + to_string(moveCtr));
 }

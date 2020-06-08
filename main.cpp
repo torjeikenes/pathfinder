@@ -3,8 +3,8 @@
 
 using namespace Graph_lib;
 int main(){
-    int xcell = 10;
-    int ycell = 10;
+    int xcell = 20;
+    int ycell = 20;
     int cellSize = 40;
     Loc start{1,1};
     Loc end{8,7};

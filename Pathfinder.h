@@ -22,6 +22,7 @@ private:
     Vector<Cell*> route;
     set<Cell*> q;
     Vector<Cell*> searched;
+    int moveCtr;
 
     void compareCells(Cell* cur,int xOffset,int yOffset);
     Cell* getMinDist();
@@ -38,6 +39,7 @@ private:
     Cell* getMinCost();
     void compareCellsAst(Cell* cur,int xOffset,int yOffset);
     static void cb_ast(Address, Address addr);
+    void addMove();
 
     int Width() const { return xcell*cellSize;}
     int Height() const { return ycell*cellSize;}
@@ -56,6 +58,8 @@ public:
     Button AstBt;
     Button mazeBt;
     Button clearBt;
+    Text moves;
+    Rectangle mvBg;
 };
 
 
