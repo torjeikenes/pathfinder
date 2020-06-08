@@ -3,12 +3,13 @@
 
 using namespace Graph_lib;
 int main(){
-    int xcell = 21;
-    int ycell = 21;
-    int cellSize = 20;
+    int xcell = 20;
+    int ycell = 20;
+    int cellSize = 40;
     Loc start{1,1};
     Loc end{8,7};
-    Vector<Loc> blocked{Loc{5,0},Loc{5,1},Loc{5,2},Loc{4,3},Loc{4,4}};
+    //Vector<Loc> blocked{Loc{5,0},Loc{5,1},Loc{5,2},Loc{4,3},Loc{4,4}};
+    Vector<Loc> blocked;
     Pathfinder pf{xcell,ycell,cellSize,start,end,blocked};
     pf.handleClicks();
 }

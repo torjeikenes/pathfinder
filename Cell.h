@@ -21,20 +21,27 @@ struct Loc{
 
 class Cell : public Graph_lib::Rectangle {
     Loc l;
-    double distance;
+    int distance;
+    int cost;
     Cell* parent;
     Stat status;
+    Color blockC;
+    Color emptyC;
+    Color visitedC;
 public:
     Cell(Point xy, int ww, int hh,Loc l) 
         : Rectangle(xy,ww,hh),l{l},
-        distance{std::numeric_limits<double>::infinity()},
-        parent{nullptr},status{Stat::empty} { }
+        distance{std::numeric_limits<int>::max()},
+        cost{std::numeric_limits<int>::max()},
+        parent{nullptr},status{Stat::empty},
+        blockC{Color::black},emptyC{Color::gray},visitedC{Color::cyan} {}
     void setBlocked();
     void setVisited();
     void setEmpty();
-    void setDist(double d) {distance = d;}
-    //void set_fill_color(Color c){pw->color(FL_RED);}
-    double getDist() {return distance;}
+    void setDist(int d) {distance = d;}
+    int getDist() {return distance;}
+    void setCost(int c) {cost = c;}
+    int getCost() {return cost;}
     Stat getStatus() {return status;}
     Loc getLoc() {return l;}
     void SetParent(Cell* p) {parent = p;}

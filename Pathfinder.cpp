@@ -4,27 +4,39 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     : Graph_lib::Window{Point{100,100},x*s+70,y*s,"Pathfinder"}, 
     xcell{x},ycell{y},cellSize{s},
     start{start},end{end},blocked{blck},
-    running{false},startPress{false},endPress{false},
+    running{false},startPress{false},endPress{false},moveCtr{0},
     dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
-    clearBt{Point{x_max()-70,25},70,20,"Clear",cb_clear},
-    mazeBt{Point{x_max()-70,50},70,20,"Maze",cb_maze}
+    AstBt{Point{x_max()-70,25},70,20,"A*",cb_ast},
+    mazeBt{Point{x_max()-70,50},70,20,"Maze",cb_maze},
+    clearBt{Point{x_max()-70,75},70,20,"Clear",cb_clear},
+    moves{Point{x_max()-70,114},"Moves: 0"},
+    mvBg{Point{x_max()-70,100},70,20},
+    searchC{Color::blue},pathC{Color::yellow},startC{Color::magenta},
+    endC{Color::green}
     {
     //Fills up the grid and the que
     for (int j = 0;j<xcell;j++){
         for (int i = 0;i<ycell;i++){
-            vr.push_back(new Cell{Point{i*cellSize,j*cellSize},cellSize,cellSize,Loc{i,j}});
+            vr.push_back(new Cell{Point{i*cellSize,j*cellSize},
+                                        cellSize,cellSize,Loc{i,j}});
             attach(vr.back());
             q.insert(&vr.back());
         }
     }
 
+    moves.set_color(Color::black);
+    mvBg.set_fill_color(Color::gray);
+
     attach(dijkstraBt);
+    attach(AstBt);
     attach(clearBt);
     attach(mazeBt);
+    attach(mvBg);
+    attach(moves);
 
     //Color start and end
-    getCell(start)->set_fill_color(Color::magenta);
-    getCell(end)->set_fill_color(Color::green);
+    getCell(start)->set_fill_color(startC);
+    getCell(end)->set_fill_color(endC);
     //Blocks all cells from the blck vector
     for(auto b:blocked){
         getCell(b)->setBlocked();
@@ -53,7 +65,8 @@ Cell* Pathfinder::getCell(Loc l){
     }
 }
 
-void Pathfinder::dijkstra(){ 
+void Pathfinder::dijkstra(double waitTime=0){ 
+    clear();
     // the current cell is set to the start location
     auto cur = getCell(start);
     //curs distance is set to 0. The rest are infinite from the constructor
@@ -64,6 +77,7 @@ void Pathfinder::dijkstra(){
     while(getCell(end)->getStatus()!=Stat::visited){
         //The current cell is set to the cell with the lowest distance in q
         cur = getMinDist();
+        addMove();
 
         //checks all directions
         //compareCells(cur,-1,-1);// up left
@@ -79,23 +93,23 @@ void Pathfinder::dijkstra(){
         cur->setVisited();
         searched.push_back(cur);
         q.erase(cur);
-        getCell(start)->set_fill_color(Color::magenta);
+        getCell(start)->set_fill_color(startC);
         flush(); //redraws window
-        Fl::wait(0.1); //waits for 0.1 seconds
+        Fl::wait(waitTime); //waits for 0.1 seconds
     }
     //draws path from end to start
     drawPath(cur,getCell(start));
-    getCell(end)->set_fill_color(Color::green);
+    getCell(end)->set_fill_color(endC);
     flush();
 }
 
-// Draws path by tracing the parent parent pointer
+// Draws path by tracing the parent pointer
 void Pathfinder::drawPath(Cell* start,Cell* end){
     Cell* c = start;
     // Runs until c is at the end
     while(c!=end){
         //Changes color to yellow 
-        c->set_fill_color(Color::yellow);
+        c->set_fill_color(pathC);
         //sets c to its own parrent
         c=c->getParent();
     }
@@ -109,19 +123,19 @@ void Pathfinder::handleClicks(){
     }
 }
 
-
 // Compares current cell with the cell with given offset and set distance
 void Pathfinder::compareCells(Cell* cur,int xOffset,int yOffset){
-    //double dist =  sqrt(abs(xOffset)+abs(yOffset));
-    double dist =  abs(xOffset)+abs(yOffset);
+    int d = 10; // multiplier for minimum cost
+    int dist =  sqrt(abs(xOffset*d)+abs(yOffset*d));
+    //int dist =  abs(xOffset*10)+abs(yOffset*10);
     auto next = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
     // Checks if cell is inside grid and is empty
     if(next!=nullptr && next->getStatus()==Stat::empty){
-        next->set_fill_color(Color::blue);
+        next->set_fill_color(searchC);
         searched.push_back(next);
         // assignes current distance + cost if it is lower
-        if(cur->getDist()+dist<next->getDist()){
-            next->setDist(cur->getDist()+dist);
+        if(cur->getDist() + dist < next->getDist()){
+            next->setDist(cur->getDist() + dist);
             next->SetParent(cur);
         }
     }
@@ -192,32 +206,32 @@ void Pathfinder::click(){
 void Pathfinder::setStart(Loc l){
     getCell(start)->setEmpty();
     start=l;
-    getCell(start)->set_fill_color(Color::magenta);
+    getCell(start)->set_fill_color(startC);
 }
 
 //Changes end cell to the given location
 void Pathfinder::setEnd(Loc l){
     getCell(end)->setEmpty();
     end=l;
-    getCell(end)->set_fill_color(Color::green);
+    getCell(end)->set_fill_color(endC);
 }
 
 // Callback function from the start button
 void Pathfinder::cb_start(Address, Address addr){ 
-    static_cast<Pathfinder *>(addr)->strt();
+    static_cast<Pathfinder *>(addr)->dijkstra(0.05);
 }
 
 //starts the algorithm 
 void Pathfinder::strt() {
     running = true;
-    dijkstra();
+    dijkstra(0.05);
     running = false;
     // runs handleClicks again to keep window open after completion
     handleClicks();
 }
 
 void Pathfinder::cb_clear(Address, Address addr){ 
-    static_cast<Pathfinder *>(addr)->clear();
+    static_cast<Pathfinder *>(addr)->clearBlk();
 }
 
 void Pathfinder::clear() {
@@ -226,21 +240,24 @@ void Pathfinder::clear() {
         c->setEmpty();
     }
     searched.clear();
-    //redraw window
-    flush();
     //Color start and end
-    getCell(start)->set_fill_color(Color::magenta);
-    getCell(end)->set_fill_color(Color::green);
+    getCell(start)->set_fill_color(startC);
+    getCell(end)->set_fill_color(endC);
 
     q.clear();
     for(auto e:vr){
-        e->setDist(std::numeric_limits<double>::infinity());
+        e->setDist(std::numeric_limits<int>::max());
+        e->setCost(std::numeric_limits<int>::max());
         q.insert(e);
     };
+    moveCtr = 0;
+    moves.set_label("Moves: 0");
 
+    //redraw window
+    redraw();
 }
 
-void Pathfinder::mazeGen(){
+void Pathfinder::mazeGen(double waitTime=0){
     clear();
     Loc last = end;
     setEnd(Loc(xcell-1,ycell-1));
@@ -284,10 +301,10 @@ void Pathfinder::mazeGen(){
             st.push(cur);
             st.push(nxt);
 
-            Fl::wait(.1);// wait
+            Fl::wait(waitTime);// wait
 
             // Set cur cell to last cell 
-            last = cur->getLoc();
+            last = nxt->getLoc();
             flush(); 
         }
     }
@@ -326,5 +343,128 @@ Cell* Pathfinder::openCell(Cell* cur,int xOffset,int yOffset){
 
 // Maze button callback
 void Pathfinder::cb_maze(Address, Address addr){
-    static_cast<Pathfinder *>(addr)->mazeGen();
+    static_cast<Pathfinder *>(addr)->mazeGen(0.05);
+}
+
+// Astar button callback
+void Pathfinder::cb_ast(Address, Address addr){
+    static_cast<Pathfinder *>(addr)->aStar(0.05);
+}
+
+void Pathfinder::aStar(double waitTime=0){ 
+    clear();
+    // the current cell is set to the start location
+    auto cur = getCell(start);
+    //curs distance is set to 0. The rest are infinite from the constructor
+    cur->setDist(0);
+    cur->setCost(0+manhattan(cur));
+
+
+    //Runs until the end cell has been visited
+    while(getCell(end)->getStatus()!=Stat::visited){
+        //The current cell is set to the cell with the lowest distance in q
+        cur = getMinCost();
+        addMove();
+
+        //checks all directions
+        //compareCellsAst(cur,-1,-1);// up left
+        compareCellsAst(cur,0,-1);// up
+        //compareCellsAst(cur,1,-1);// up right
+        compareCellsAst(cur,1,0); // right
+        //compareCellsAst(cur,1,1); // down right
+        compareCellsAst(cur,0,1); // down
+        //compareCellsAst(cur,-1,1); // down left
+        compareCellsAst(cur,-1,0);// left
+
+        // Done with current so its set to visited and removed from q
+        cur->setVisited();
+        searched.push_back(cur);
+        q.erase(cur);
+        getCell(start)->set_fill_color(startC);
+        flush(); //redraws window
+        Fl::wait(waitTime); //waits for 0.1 seconds
+    }
+    //draws path from end to start
+    drawPath(cur,getCell(start));
+    getCell(end)->set_fill_color(endC);
+    flush();
+}
+
+//Returns manhattan distance between cell and end
+int Pathfinder::manhattan(Cell* c){
+    int d = 10; // multiplier for minimum cost
+    Loc cxy = c->getLoc();
+
+    int dx = abs(cxy.x-end.x);
+    int dy = abs(cxy.y-end.y);
+    return d*(dx + dy);
+}
+
+//Returns the lowest cost in the set
+Cell* Pathfinder::getMinCost(){
+    //e is set to the first element of the set
+    auto e = *(q.begin());
+    //Checks all elements if if has lower cost than e and 
+    //sets itself to e
+    for(auto c:q){
+        if(c->getCost() < e->getCost()){
+            e = c;
+        }
+        // If the cost is the same, the shortest manhattan distance is prioritized 
+        else if((c->getCost()==e->getCost()) && (manhattan(c)< manhattan(e))){
+            e = c;
+        }
+    }
+    return e;
+}
+
+// Compares current cell with the cell with given offset and set distance
+void Pathfinder::compareCellsAst(Cell* cur,int xOffset,int yOffset){
+    int d = 10; // multiplier for minimum cost
+    int mvCost =  abs(xOffset*d)+abs(yOffset*d);
+
+    //int dist =  abs(xOffset*10)+abs(yOffset*10);
+    auto next = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
+    // Checks if cell is inside grid and is empty
+    if(next!=nullptr && next->getStatus()==Stat::empty){
+        next->set_fill_color(searchC);
+        int manh = manhattan(next);
+        searched.push_back(next);
+        // assignes current distance + cost if it is lower
+        if(cur->getCost() + mvCost < next->getCost()){
+            next->setDist(cur->getDist() + mvCost);
+            next->setCost(next->getDist() + manh);
+            next->SetParent(cur);
+        }
+    }
+}
+
+// Increment the move counter
+void Pathfinder::addMove(){
+    moveCtr++;
+    moves.set_label("Moves: " + to_string(moveCtr));
+}
+
+// Clear all cells including blocked
+void Pathfinder::clearBlk(){
+    //Set all searched cells to empty
+    for(auto c:vr){
+        c->setEmpty();
+    }
+    searched.clear();
+    //Color start and end
+    getCell(start)->set_fill_color(startC);
+    getCell(end)->set_fill_color(endC);
+
+    q.clear();
+    for(auto e:vr){
+        e->setDist(std::numeric_limits<int>::max());
+        e->setCost(std::numeric_limits<int>::max());
+        q.insert(e);
+    };
+    moveCtr = 0;
+    moves.set_label("Moves: 0");
+
+    //redraw window
+    redraw();
 }

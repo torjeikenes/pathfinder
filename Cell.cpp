@@ -3,16 +3,16 @@
 
 void Cell::setEmpty(){
     status = Stat::empty;
-    set_fill_color(Color::gray);
+    set_fill_color(emptyC);
     
 }
 
 void Cell::setBlocked(){
     status = Stat::blocked;
-    set_fill_color(Color::black);
+    set_fill_color(blockC);
 }
 
 void Cell::setVisited(){
     status = Stat::visited;
-    set_fill_color(Color::cyan);
+    set_fill_color(visitedC);
 }
