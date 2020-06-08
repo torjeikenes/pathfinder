@@ -4,7 +4,8 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     : Graph_lib::Window{Point{100,100},x*s+70,y*s,"Pathfinder"}, 
     xcell{x},ycell{y},cellSize{s},
     start{start},end{end},blocked{blck},
-    running{false},startPress{false},endPress{false},moveCtr{0},
+    running{false},startPress{false},endPress{false},dijkDone{false},astDone{false},
+    moveCtr{0},
     dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
     AstBt{Point{x_max()-70,25},70,20,"A*",cb_ast},
     mazeBt{Point{x_max()-70,50},70,20,"Maze",cb_maze},
@@ -51,16 +52,9 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
 
 
 #pragma region dijkstra
-//starts the algorithm 
-void Pathfinder::strt() {
-    running = true;
-    dijkstra(0.05);
-    running = false;
-    // runs handleClicks again to keep window open after completion
-    handleClicks();
-}
 
 void Pathfinder::dijkstra(double waitTime=0){ 
+    running = true;
     clear();
     // the current cell is set to the start location
     auto cur = getCell(start);
@@ -89,13 +83,17 @@ void Pathfinder::dijkstra(double waitTime=0){
         searched.push_back(cur);
         q.erase(cur);
         getCell(start)->set_fill_color(startC);
-        flush(); //redraws window
-        Fl::wait(waitTime); //waits for 0.1 seconds
+        if(waitTime>0){
+            flush(); //redraws window
+            Fl::wait(waitTime); //waits for 0.1 seconds
+        }
     }
     //draws path from end to start
     drawPath(cur,getCell(start));
     getCell(end)->set_fill_color(endC);
     flush();
+    running = false;
+    dijkDone = true;
 }
 
 // Compares current cell with the cell with given offset and set distance
@@ -134,6 +132,7 @@ Cell* Pathfinder::getMinDist(){
 
 #pragma region a-star
 void Pathfinder::aStar(double waitTime=0){ 
+    running = true;
     clear();
     // the current cell is set to the start location
     auto cur = getCell(start);
@@ -163,13 +162,17 @@ void Pathfinder::aStar(double waitTime=0){
         searched.push_back(cur);
         q.erase(cur);
         getCell(start)->set_fill_color(startC);
-        flush(); //redraws window
-        Fl::wait(waitTime); //waits for 0.1 seconds
+        if(waitTime>0){
+            flush(); //redraws window
+            Fl::wait(waitTime); //waits for 0.1 seconds
+        }
     }
     //draws path from end to start
     drawPath(cur,getCell(start));
     getCell(end)->set_fill_color(endC);
     flush();
+    running = false;
+    astDone = true;
 }
 
 //Returns manhattan distance between cell and end
@@ -371,6 +374,14 @@ void Pathfinder::click(){
         flush();
     }
     else{
+        //if(startPress || endPress){
+        //    if(dijkDone){
+        //        dijkstra();
+        //    }
+        //    else if(astDone){
+        //        aStar();
+        //    }
+        //}
         //Stops dragging
         startPress = false;
         endPress = false;
@@ -385,6 +396,12 @@ void Pathfinder::setStart(Loc l){
     getCell(start)->setEmpty();
     start=l;
     getCell(start)->set_fill_color(startC);
+    if(dijkDone){
+        dijkstra();
+    }
+    else if(astDone){
+        aStar();
+    }
 }
 
 //Changes end cell to the given location
@@ -392,6 +409,12 @@ void Pathfinder::setEnd(Loc l){
     getCell(end)->setEmpty();
     end=l;
     getCell(end)->set_fill_color(endC);
+    if(dijkDone){
+        dijkstra();
+    }
+    else if(astDone){
+        aStar();
+    }
 }
 
 // Returns pointer to Cell with given loc
@@ -461,7 +484,7 @@ void Pathfinder::clear() {
     moves.set_label("Moves: 0");
 
     //redraw window
-    redraw();
+    flush();
 }
 // Clear all cells including blocked
 void Pathfinder::clearBlk(){
@@ -483,7 +506,10 @@ void Pathfinder::clearBlk(){
     moveCtr = 0;
     moves.set_label("Moves: 0");
 
+    dijkDone = false;
+    astDone = false;
+
     //redraw window
-    redraw();
+    flush();
 }
 #pragma endregion

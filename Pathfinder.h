@@ -29,15 +29,15 @@ public:
     Rectangle mvBg;
 private:
     int xcell, ycell, cellSize;
+    int moveCtr;
     Vector_ref<Cell> vr;
+    Vector<Loc> blocked;
+    Vector<Cell*> route;
+    Vector<Cell*> searched;
+    set<Cell*> q;
     Loc start;
     Loc end;
-    Vector<Loc> blocked;
-    bool running, startPress, endPress;
-    Vector<Cell*> route;
-    set<Cell*> q;
-    Vector<Cell*> searched;
-    int moveCtr;
+    bool running, startPress, endPress,dijkDone,astDone;
     Color searchC, pathC, startC, endC;
 
     // Dijkstra
