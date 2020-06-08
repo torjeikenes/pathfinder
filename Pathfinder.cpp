@@ -112,16 +112,16 @@ void Pathfinder::handleClicks(){
 
 // Compares current cell with the cell with given offset and set distance
 void Pathfinder::compareCells(Cell* cur,int xOffset,int yOffset){
-    //double dist =  sqrt(abs(xOffset)+abs(yOffset));
-    double dist =  abs(xOffset)+abs(yOffset);
+    int dist =  sqrt(abs(xOffset*10)+abs(yOffset*10));
+    //int dist =  abs(xOffset*10)+abs(yOffset*10);
     auto next = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
     // Checks if cell is inside grid and is empty
     if(next!=nullptr && next->getStatus()==Stat::empty){
         next->set_fill_color(Color::blue);
         searched.push_back(next);
         // assignes current distance + cost if it is lower
-        if(cur->getDist()+dist<next->getDist()){
-            next->setDist(cur->getDist()+dist);
+        if(cur->getDist() + dist < next->getDist()){
+            next->setDist(cur->getDist() + dist);
             next->SetParent(cur);
         }
     }
@@ -234,7 +234,7 @@ void Pathfinder::clear() {
 
     q.clear();
     for(auto e:vr){
-        e->setDist(std::numeric_limits<double>::infinity());
+        e->setDist(std::numeric_limits<int>::max());
         q.insert(e);
     };
 
@@ -327,4 +327,44 @@ Cell* Pathfinder::openCell(Cell* cur,int xOffset,int yOffset){
 // Maze button callback
 void Pathfinder::cb_maze(Address, Address addr){
     static_cast<Pathfinder *>(addr)->mazeGen();
+}
+
+void Pathfinder::aStar(){ 
+    // the current cell is set to the start location
+    auto cur = getCell(start);
+    //curs distance is set to 0. The rest are infinite from the constructor
+    cur->setDist(0);
+
+
+    //Runs until the end cell has been visited
+    while(getCell(end)->getStatus()!=Stat::visited){
+        //The current cell is set to the cell with the lowest distance in q
+        cur = getMinDist();
+
+        //checks all directions
+        //compareCells(cur,-1,-1);// up left
+        compareCells(cur,0,-1);// up
+        //compareCells(cur,1,-1);// up right
+        compareCells(cur,1,0); // right
+        //compareCells(cur,1,1); // down right
+        compareCells(cur,0,1); // down
+        //compareCells(cur,-1,1); // down left
+        compareCells(cur,-1,0);// left
+
+        // Done with current so its set to visited and removed from q
+        cur->setVisited();
+        searched.push_back(cur);
+        q.erase(cur);
+        getCell(start)->set_fill_color(Color::magenta);
+        flush(); //redraws window
+        Fl::wait(0.1); //waits for 0.1 seconds
+    }
+    //draws path from end to start
+    drawPath(cur,getCell(start));
+    getCell(end)->set_fill_color(Color::green);
+    flush();
+}
+
+double heuristic(Cell* c){
+    
 }

@@ -21,13 +21,13 @@ struct Loc{
 
 class Cell : public Graph_lib::Rectangle {
     Loc l;
-    double distance;
+    int distance;
     Cell* parent;
     Stat status;
 public:
     Cell(Point xy, int ww, int hh,Loc l) 
         : Rectangle(xy,ww,hh),l{l},
-        distance{std::numeric_limits<double>::infinity()},
+        distance{std::numeric_limits<int>::max()},
         parent{nullptr},status{Stat::empty} { }
     void setBlocked();
     void setVisited();

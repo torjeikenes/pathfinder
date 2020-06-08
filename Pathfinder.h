@@ -43,6 +43,7 @@ public:
     Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck=Vector<Loc>{0});
     Cell* getCell(Loc l);
     void dijkstra();
+    void aStar();
     void drawPath(Cell* start,Cell* end);
     void handleClicks();
     void mazeGen();
