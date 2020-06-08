@@ -2,10 +2,9 @@
 
 Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     : Graph_lib::Window{Point{100,100},x*s+70,y*s,"Pathfinder"}, 
-    xcell{x},ycell{y},cellSize{s},
-    start{start},end{end},blocked{blck},
+    xcell{x},ycell{y},cellSize{s},moveCtr{0},
+    blocked{blck},start{start},end{end},
     running{false},startPress{false},endPress{false},dijkDone{false},astDone{false},
-    moveCtr{0},
     dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
     AstBt{Point{x_max()-70,25},70,20,"A*",cb_ast},
     mazeBt{Point{x_max()-70,50},70,20,"Maze",cb_maze},

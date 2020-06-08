@@ -1,14 +1,14 @@
 #pragma once
-#include "Cell.h"
-#include "Simple_window.h"
-#include "Window.h"
-#include "WaitWindow.h"
 #include <cmath>
 #include <stack>
+#include "Window.h"
+#include "GUI.h"
+#include "Cell.h"
 
 
 enum class MouseButton { left = FL_LEFT_MOUSE, right = FL_RIGHT_MOUSE};
 
+using namespace Graph_lib;
 class Pathfinder : public Graph_lib::Window{
 public:
     Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck=Vector<Loc>{0});
@@ -28,10 +28,9 @@ public:
     Text moves;
     Rectangle mvBg;
 private:
-    int xcell, ycell, cellSize;
-    int moveCtr;
-    Vector_ref<Cell> vr;
+    int xcell, ycell, cellSize, moveCtr;
     Vector<Loc> blocked;
+    Vector_ref<Cell> vr;
     Vector<Cell*> route;
     Vector<Cell*> searched;
     set<Cell*> q;
