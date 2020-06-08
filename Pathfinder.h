@@ -28,23 +28,26 @@ private:
     Color startC;
     Color endC;
 
+    void strt();
     void compareCells(Cell* cur,int xOffset,int yOffset);
     Cell* getMinDist();
+
+    int manhattan(Cell* c);
+    void compareCellsAst(Cell* cur,int xOffset,int yOffset);
+    Cell* getMinCost();
+
+    Cell* openCell(Cell* cur,int xOffset,int yOffset);
+
+    void clear();
     void click();
+    static void cb_start(Address, Address addr);
+    static void cb_clear(Address, Address addr);
+    static void cb_maze(Address, Address addr);
+    static void cb_ast(Address, Address addr);
+
+    void addMove();
     void setStart(Loc l);
     void setEnd(Loc l);
-    static void cb_start(Address, Address addr);
-    void strt();
-    static void cb_clear(Address, Address addr);
-    void clear();
-    Cell* openCell(Cell* cur,int xOffset,int yOffset);
-    static void cb_maze(Address, Address addr);
-    int manhattan(Cell* c);
-    Cell* getMinCost();
-    void compareCellsAst(Cell* cur,int xOffset,int yOffset);
-    static void cb_ast(Address, Address addr);
-    void addMove();
-
     int Width() const { return xcell*cellSize;}
     int Height() const { return ycell*cellSize;}
     bool inRange(Point xy) const { return xy.x >= 0 && xy.x < Width() && xy.y >= 0 && xy.y < Height(); }
@@ -52,11 +55,14 @@ private:
 public:
     Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck=Vector<Loc>{0});
     Cell* getCell(Loc l);
-    void dijkstra();
-    void aStar();
+
+    void dijkstra(double waitTime);
+    void aStar(double waitTime);
+    void mazeGen(double waitTime);
+
     void drawPath(Cell* start,Cell* end);
     void handleClicks();
-    void mazeGen();
+    void clearBlk();
 
     Button dijkstraBt;
     Button AstBt;

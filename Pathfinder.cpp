@@ -65,7 +65,8 @@ Cell* Pathfinder::getCell(Loc l){
     }
 }
 
-void Pathfinder::dijkstra(){ 
+void Pathfinder::dijkstra(double waitTime=0){ 
+    clear();
     // the current cell is set to the start location
     auto cur = getCell(start);
     //curs distance is set to 0. The rest are infinite from the constructor
@@ -94,7 +95,7 @@ void Pathfinder::dijkstra(){
         q.erase(cur);
         getCell(start)->set_fill_color(startC);
         flush(); //redraws window
-        Fl::wait(0.1); //waits for 0.1 seconds
+        Fl::wait(waitTime); //waits for 0.1 seconds
     }
     //draws path from end to start
     drawPath(cur,getCell(start));
@@ -102,7 +103,7 @@ void Pathfinder::dijkstra(){
     flush();
 }
 
-// Draws path by tracing the parent parent pointer
+// Draws path by tracing the parent pointer
 void Pathfinder::drawPath(Cell* start,Cell* end){
     Cell* c = start;
     // Runs until c is at the end
@@ -121,7 +122,6 @@ void Pathfinder::handleClicks(){
         click();         
     }
 }
-
 
 // Compares current cell with the cell with given offset and set distance
 void Pathfinder::compareCells(Cell* cur,int xOffset,int yOffset){
@@ -218,20 +218,20 @@ void Pathfinder::setEnd(Loc l){
 
 // Callback function from the start button
 void Pathfinder::cb_start(Address, Address addr){ 
-    static_cast<Pathfinder *>(addr)->strt();
+    static_cast<Pathfinder *>(addr)->dijkstra(0.05);
 }
 
 //starts the algorithm 
 void Pathfinder::strt() {
     running = true;
-    dijkstra();
+    dijkstra(0.05);
     running = false;
     // runs handleClicks again to keep window open after completion
     handleClicks();
 }
 
 void Pathfinder::cb_clear(Address, Address addr){ 
-    static_cast<Pathfinder *>(addr)->clear();
+    static_cast<Pathfinder *>(addr)->clearBlk();
 }
 
 void Pathfinder::clear() {
@@ -257,7 +257,7 @@ void Pathfinder::clear() {
     redraw();
 }
 
-void Pathfinder::mazeGen(){
+void Pathfinder::mazeGen(double waitTime=0){
     clear();
     Loc last = end;
     setEnd(Loc(xcell-1,ycell-1));
@@ -301,10 +301,10 @@ void Pathfinder::mazeGen(){
             st.push(cur);
             st.push(nxt);
 
-            Fl::wait(.1);// wait
+            Fl::wait(waitTime);// wait
 
             // Set cur cell to last cell 
-            last = cur->getLoc();
+            last = nxt->getLoc();
             flush(); 
         }
     }
@@ -343,15 +343,16 @@ Cell* Pathfinder::openCell(Cell* cur,int xOffset,int yOffset){
 
 // Maze button callback
 void Pathfinder::cb_maze(Address, Address addr){
-    static_cast<Pathfinder *>(addr)->mazeGen();
+    static_cast<Pathfinder *>(addr)->mazeGen(0.05);
 }
 
 // Astar button callback
 void Pathfinder::cb_ast(Address, Address addr){
-    static_cast<Pathfinder *>(addr)->aStar();
+    static_cast<Pathfinder *>(addr)->aStar(0.05);
 }
 
-void Pathfinder::aStar(){ 
+void Pathfinder::aStar(double waitTime=0){ 
+    clear();
     // the current cell is set to the start location
     auto cur = getCell(start);
     //curs distance is set to 0. The rest are infinite from the constructor
@@ -381,7 +382,7 @@ void Pathfinder::aStar(){
         q.erase(cur);
         getCell(start)->set_fill_color(startC);
         flush(); //redraws window
-        Fl::wait(0.1); //waits for 0.1 seconds
+        Fl::wait(waitTime); //waits for 0.1 seconds
     }
     //draws path from end to start
     drawPath(cur,getCell(start));
@@ -424,7 +425,6 @@ void Pathfinder::compareCellsAst(Cell* cur,int xOffset,int yOffset){
 
     //int dist =  abs(xOffset*10)+abs(yOffset*10);
     auto next = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
-    flush();
     // Checks if cell is inside grid and is empty
     if(next!=nullptr && next->getStatus()==Stat::empty){
         next->set_fill_color(searchC);
@@ -442,4 +442,27 @@ void Pathfinder::compareCellsAst(Cell* cur,int xOffset,int yOffset){
 void Pathfinder::addMove(){
     moveCtr++;
     moves.set_label("Moves: " + to_string(moveCtr));
+}
+
+void Pathfinder::clearBlk(){
+    //Set all searched cells to empty
+    for(auto c:vr){
+        c->setEmpty();
+    }
+    searched.clear();
+    //Color start and end
+    getCell(start)->set_fill_color(startC);
+    getCell(end)->set_fill_color(endC);
+
+    q.clear();
+    for(auto e:vr){
+        e->setDist(std::numeric_limits<int>::max());
+        e->setCost(std::numeric_limits<int>::max());
+        q.insert(e);
+    };
+    moveCtr = 0;
+    moves.set_label("Moves: 0");
+
+    //redraw window
+    redraw();
 }
