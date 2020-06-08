@@ -439,11 +439,13 @@ void Pathfinder::compareCellsAst(Cell* cur,int xOffset,int yOffset){
     }
 }
 
+// Increment the move counter
 void Pathfinder::addMove(){
     moveCtr++;
     moves.set_label("Moves: " + to_string(moveCtr));
 }
 
+// Clear all cells including blocked
 void Pathfinder::clearBlk(){
     //Set all searched cells to empty
     for(auto c:vr){
