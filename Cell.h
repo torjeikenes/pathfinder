@@ -25,12 +25,16 @@ class Cell : public Graph_lib::Rectangle {
     int cost;
     Cell* parent;
     Stat status;
+    Color blockC;
+    Color emptyC;
+    Color visitedC;
 public:
     Cell(Point xy, int ww, int hh,Loc l) 
         : Rectangle(xy,ww,hh),l{l},
         distance{std::numeric_limits<int>::max()},
         cost{std::numeric_limits<int>::max()},
-        parent{nullptr},status{Stat::empty} {}
+        parent{nullptr},status{Stat::empty},
+        blockC{Color::black},emptyC{Color::gray},visitedC{Color::cyan} {}
     void setBlocked();
     void setVisited();
     void setEmpty();

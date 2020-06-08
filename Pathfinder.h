@@ -23,6 +23,10 @@ private:
     set<Cell*> q;
     Vector<Cell*> searched;
     int moveCtr;
+    Color searchC;
+    Color pathC; 
+    Color startC;
+    Color endC;
 
     void compareCells(Cell* cur,int xOffset,int yOffset);
     Cell* getMinDist();

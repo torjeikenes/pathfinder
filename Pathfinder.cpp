@@ -4,19 +4,21 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     : Graph_lib::Window{Point{100,100},x*s+70,y*s,"Pathfinder"}, 
     xcell{x},ycell{y},cellSize{s},
     start{start},end{end},blocked{blck},
-    running{false},startPress{false},endPress{false},
+    running{false},startPress{false},endPress{false},moveCtr{0},
     dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
     AstBt{Point{x_max()-70,25},70,20,"A*",cb_ast},
     mazeBt{Point{x_max()-70,50},70,20,"Maze",cb_maze},
     clearBt{Point{x_max()-70,75},70,20,"Clear",cb_clear},
-    moveCtr{0},
     moves{Point{x_max()-70,114},"Moves: 0"},
-    mvBg{Point{x_max()-70,100},70,20}
+    mvBg{Point{x_max()-70,100},70,20},
+    searchC{Color::blue},pathC{Color::yellow},startC{Color::magenta},
+    endC{Color::green}
     {
     //Fills up the grid and the que
     for (int j = 0;j<xcell;j++){
         for (int i = 0;i<ycell;i++){
-            vr.push_back(new Cell{Point{i*cellSize,j*cellSize},cellSize,cellSize,Loc{i,j}});
+            vr.push_back(new Cell{Point{i*cellSize,j*cellSize},
+                                        cellSize,cellSize,Loc{i,j}});
             attach(vr.back());
             q.insert(&vr.back());
         }
@@ -33,8 +35,8 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     attach(moves);
 
     //Color start and end
-    getCell(start)->set_fill_color(Color::magenta);
-    getCell(end)->set_fill_color(Color::green);
+    getCell(start)->set_fill_color(startC);
+    getCell(end)->set_fill_color(endC);
     //Blocks all cells from the blck vector
     for(auto b:blocked){
         getCell(b)->setBlocked();
@@ -90,13 +92,13 @@ void Pathfinder::dijkstra(){
         cur->setVisited();
         searched.push_back(cur);
         q.erase(cur);
-        getCell(start)->set_fill_color(Color::magenta);
+        getCell(start)->set_fill_color(startC);
         flush(); //redraws window
         Fl::wait(0.1); //waits for 0.1 seconds
     }
     //draws path from end to start
     drawPath(cur,getCell(start));
-    getCell(end)->set_fill_color(Color::green);
+    getCell(end)->set_fill_color(endC);
     flush();
 }
 
@@ -106,7 +108,7 @@ void Pathfinder::drawPath(Cell* start,Cell* end){
     // Runs until c is at the end
     while(c!=end){
         //Changes color to yellow 
-        c->set_fill_color(Color::yellow);
+        c->set_fill_color(pathC);
         //sets c to its own parrent
         c=c->getParent();
     }
@@ -129,7 +131,7 @@ void Pathfinder::compareCells(Cell* cur,int xOffset,int yOffset){
     auto next = getCell(Loc{cur->getLoc().x+xOffset,cur->getLoc().y+yOffset});
     // Checks if cell is inside grid and is empty
     if(next!=nullptr && next->getStatus()==Stat::empty){
-        next->set_fill_color(Color::blue);
+        next->set_fill_color(searchC);
         searched.push_back(next);
         // assignes current distance + cost if it is lower
         if(cur->getDist() + dist < next->getDist()){
@@ -204,14 +206,14 @@ void Pathfinder::click(){
 void Pathfinder::setStart(Loc l){
     getCell(start)->setEmpty();
     start=l;
-    getCell(start)->set_fill_color(Color::magenta);
+    getCell(start)->set_fill_color(startC);
 }
 
 //Changes end cell to the given location
 void Pathfinder::setEnd(Loc l){
     getCell(end)->setEmpty();
     end=l;
-    getCell(end)->set_fill_color(Color::green);
+    getCell(end)->set_fill_color(endC);
 }
 
 // Callback function from the start button
@@ -239,8 +241,8 @@ void Pathfinder::clear() {
     }
     searched.clear();
     //Color start and end
-    getCell(start)->set_fill_color(Color::magenta);
-    getCell(end)->set_fill_color(Color::green);
+    getCell(start)->set_fill_color(startC);
+    getCell(end)->set_fill_color(endC);
 
     q.clear();
     for(auto e:vr){
@@ -377,13 +379,13 @@ void Pathfinder::aStar(){
         cur->setVisited();
         searched.push_back(cur);
         q.erase(cur);
-        getCell(start)->set_fill_color(Color::magenta);
+        getCell(start)->set_fill_color(startC);
         flush(); //redraws window
         Fl::wait(0.1); //waits for 0.1 seconds
     }
     //draws path from end to start
     drawPath(cur,getCell(start));
-    getCell(end)->set_fill_color(Color::green);
+    getCell(end)->set_fill_color(endC);
     flush();
 }
 
@@ -425,7 +427,7 @@ void Pathfinder::compareCellsAst(Cell* cur,int xOffset,int yOffset){
     flush();
     // Checks if cell is inside grid and is empty
     if(next!=nullptr && next->getStatus()==Stat::empty){
-        next->set_fill_color(Color::blue);
+        next->set_fill_color(searchC);
         int manh = manhattan(next);
         searched.push_back(next);
         // assignes current distance + cost if it is lower
