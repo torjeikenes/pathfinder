@@ -46,4 +46,5 @@ public:
     Loc getLoc() {return l;}
     void SetParent(Cell* p) {parent = p;}
     Cell* getParent() {return parent;}
+    bool operator<(Cell* rhs);
 };
