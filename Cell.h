@@ -47,4 +47,5 @@ public:
     void SetParent(Cell* p) {parent = p;}
     Cell* getParent() {return parent;}
     bool operator<(Cell* rhs);
+    bool operator>(Cell* rhs);
 };

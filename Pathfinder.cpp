@@ -2,15 +2,15 @@
 
 Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     : Graph_lib::Window{Point{100,100},x*s+70,y*s,"Pathfinder"}, 
-    xcell{x},ycell{y},cellSize{s},moveCtr{0},
-    blocked{blck},start{start},end{end},
-    running{false},startPress{false},endPress{false},dijkDone{false},astDone{false},
     dijkstraBt{Point{x_max()-70,0},70,20,"Dijkstra",cb_start},
     AstBt{Point{x_max()-70,25},70,20,"A*",cb_ast},
     mazeBt{Point{x_max()-70,50},70,20,"Maze",cb_maze},
     clearBt{Point{x_max()-70,75},70,20,"Clear",cb_clear},
     moves{Point{x_max()-70,114},"Moves: 0"},
     mvBg{Point{x_max()-70,100},70,20},
+    xcell{x},ycell{y},cellSize{s},moveCtr{0},
+    blocked{blck},start{start},end{end},
+    running{false},startPress{false},endPress{false},dijkDone{false},astDone{false},
     searchC{Color::blue},pathC{Color::yellow},startC{Color::magenta},
     endC{Color::green}
     {
@@ -20,7 +20,7 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
             vr.push_back(new Cell{Point{i*cellSize,j*cellSize},
                                         cellSize,cellSize,Loc{i,j}});
             attach(vr.back());
-            q.insert(&vr.back());
+            //q.insert(&vr.back());
         }
     }
 
@@ -59,6 +59,10 @@ void Pathfinder::dijkstra(double waitTime=0){
     auto cur = getCell(start);
     //curs distance is set to 0. The rest are infinite from the constructor
     cur->setDist(0);
+    cur->setCost(cur->getDist());
+    q.push(cur);
+    
+
 
 
     //Runs until the end cell has been visited
@@ -80,7 +84,7 @@ void Pathfinder::dijkstra(double waitTime=0){
         // Done with current so its set to visited and removed from q
         cur->setVisited();
         searched.push_back(cur);
-        q.erase(cur);
+        //q.erase(cur);
         getCell(start)->set_fill_color(startC);
         if(waitTime>0){
             flush(); //redraws window
@@ -109,21 +113,24 @@ void Pathfinder::compareCells(Cell* cur,int xOffset,int yOffset){
         if(cur->getDist() + dist < next->getDist()){
             next->setDist(cur->getDist() + dist);
             next->SetParent(cur);
+            q.push(next);
         }
     }
 }
 
 //Returns the lowest distance in the set
 Cell* Pathfinder::getMinDist(){
+    auto e = q.top();
+    q.pop();
     //e is set to the first element of the set
-    auto e = *(q.begin());
-    //Checks all elements if if has lower distance than e and 
-    //sets itself to e
-    for(auto c:q){
-        if(c->getDist()<e->getDist()){
-            e = c;
-        }
-    }
+    //auto e = *(q.begin());
+    ////Checks all elements if if has lower distance than e and 
+    ////sets itself to e
+    //for(auto c:q){
+    //    if(c->getDist()<e->getDist()){
+    //        e = c;
+    //    }
+    //}
     return e;
 }
 
@@ -138,6 +145,7 @@ void Pathfinder::aStar(double waitTime=0){
     //curs distance is set to 0. The rest are infinite from the constructor
     cur->setDist(0);
     cur->setCost(0+manhattan(cur));
+    q.push(cur);
 
 
     //Runs until the end cell has been visited
@@ -159,7 +167,7 @@ void Pathfinder::aStar(double waitTime=0){
         // Done with current so its set to visited and removed from q
         cur->setVisited();
         searched.push_back(cur);
-        q.erase(cur);
+        //q.erase(cur);
         getCell(start)->set_fill_color(startC);
         if(waitTime>0){
             flush(); //redraws window
@@ -186,19 +194,21 @@ int Pathfinder::manhattan(Cell* c){
 
 //Returns the lowest cost in the set
 Cell* Pathfinder::getMinCost(){
+    auto e = q.top();
+    q.pop();
     //e is set to the first element of the set
-    auto e = *(q.begin());
-    //Checks all elements if if has lower cost than e and 
-    //sets itself to e
-    for(auto c:q){
-        if(c->getCost() < e->getCost()){
-            e = c;
-        }
-        // If the cost is the same, the shortest manhattan distance is prioritized 
-        else if((c->getCost()==e->getCost()) && (manhattan(c)< manhattan(e))){
-            e = c;
-        }
-    }
+    //auto e = *(q.begin());
+    ////Checks all elements if if has lower cost than e and 
+    ////sets itself to e
+    //for(auto c:q){
+    //    if(c->getCost() < e->getCost()){
+    //        e = c;
+    //    }
+    //    // If the cost is the same, the shortest manhattan distance is prioritized 
+    //    else if((c->getCost()==e->getCost()) && (manhattan(c)< manhattan(e))){
+    //        e = c;
+    //    }
+    //}
     return e;
 }
 
@@ -219,6 +229,7 @@ void Pathfinder::compareCellsAst(Cell* cur,int xOffset,int yOffset){
             next->setDist(cur->getDist() + mvCost);
             next->setCost(next->getDist() + manh);
             next->SetParent(cur);
+            q.push(next);
         }
     }
 }
@@ -473,11 +484,15 @@ void Pathfinder::clear() {
     getCell(start)->set_fill_color(startC);
     getCell(end)->set_fill_color(endC);
 
-    q.clear();
+    //q.clear();
+    while(!q.empty()){
+        q.pop();
+    }
+
     for(auto e:vr){
         e->setDist(std::numeric_limits<int>::max());
         e->setCost(std::numeric_limits<int>::max());
-        q.insert(e);
+        //q.insert(e);
     };
     moveCtr = 0;
     moves.set_label("Moves: 0");
@@ -496,11 +511,14 @@ void Pathfinder::clearBlk(){
     getCell(start)->set_fill_color(startC);
     getCell(end)->set_fill_color(endC);
 
-    q.clear();
+    //q.clear();
+    while(!q.empty()){
+        q.pop();
+    }
     for(auto e:vr){
         e->setDist(std::numeric_limits<int>::max());
         e->setCost(std::numeric_limits<int>::max());
-        q.insert(e);
+        //q.insert(e);
     };
     moveCtr = 0;
     moves.set_label("Moves: 0");

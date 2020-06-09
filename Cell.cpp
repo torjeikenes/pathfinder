@@ -20,3 +20,7 @@ void Cell::setVisited(){
 bool Cell::operator<(Cell* rhs){
     return this->getCost()<rhs->getCost();
 }
+
+bool Cell::operator>(Cell* rhs){
+    return this->getCost()>rhs->getCost();
+}

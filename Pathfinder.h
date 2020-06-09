@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 #include <stack>
+#include <queue>
 #include "Window.h"
 #include "GUI.h"
 #include "Cell.h"
@@ -11,6 +12,9 @@ enum class MouseButton { left = FL_LEFT_MOUSE, right = FL_RIGHT_MOUSE};
 using namespace Graph_lib;
 class Pathfinder : public Graph_lib::Window{
 public:
+    Button dijkstraBt, AstBt, mazeBt, clearBt;
+    Text moves;
+    Rectangle mvBg;
     Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck=Vector<Loc>{0});
 
     void dijkstra(double waitTime);
@@ -24,16 +28,13 @@ public:
     void clearBlk();
     void clear();
 
-    Button dijkstraBt, AstBt, mazeBt, clearBt;
-    Text moves;
-    Rectangle mvBg;
 private:
     int xcell, ycell, cellSize, moveCtr;
     Vector<Loc> blocked;
     Vector_ref<Cell> vr;
     Vector<Cell*> route;
     Vector<Cell*> searched;
-    set<Cell*> q;
+    priority_queue<Cell*,vector<Cell*>, greater<Cell*>> q;
     Loc start;
     Loc end;
     bool running, startPress, endPress,dijkDone,astDone;
