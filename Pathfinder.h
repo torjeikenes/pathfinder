@@ -9,6 +9,11 @@
 
 enum class MouseButton { left = FL_LEFT_MOUSE, right = FL_RIGHT_MOUSE};
 
+// Cell comparator to sort the priority_queue
+struct cellCompareGt{
+    bool operator()(Cell* lhs, Cell* rhs);
+};
+
 using namespace Graph_lib;
 class Pathfinder : public Graph_lib::Window{
 public:
@@ -17,24 +22,24 @@ public:
     Rectangle mvBg;
     Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck=Vector<Loc>{0});
 
-    void dijkstra(double waitTime);
     void aStar(double waitTime);
+    void dijkstra(double waitTime);
     void mazeGen(double waitTime);
 
+    int manhattan(Cell* c);
     //clicks
     void handleClicks();
 
     //clear
     void clearBlk();
     void clear();
-
 private:
     int xcell, ycell, cellSize, moveCtr;
     Vector<Loc> blocked;
     Vector_ref<Cell> vr;
     Vector<Cell*> route;
     Vector<Cell*> searched;
-    priority_queue<Cell*,vector<Cell*>, greater<Cell*>> q;
+    priority_queue<Cell*,vector<Cell*>, cellCompareGt> q;
     Loc start;
     Loc end;
     bool running, startPress, endPress,dijkDone,astDone;
@@ -46,7 +51,6 @@ private:
     Cell* getMinDist();
 
     // A*
-    int manhattan(Cell* c);
     void compareCellsAst(Cell* cur,int xOffset,int yOffset);
     Cell* getMinCost();
 
@@ -78,6 +82,7 @@ private:
     int Height() const { return ycell*cellSize;}
     bool inRange(Point xy) const { return xy.x >= 0 && xy.x < Width() && xy.y >= 0 && xy.y < Height(); }
     Loc pntToLoc(Point xy) {return Loc{xy.x/cellSize,xy.y/cellSize};}
+
 };
 
 

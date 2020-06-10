@@ -18,7 +18,7 @@ Pathfinder::Pathfinder(int x, int y, int s,Loc start, Loc end,Vector<Loc> blck)
     for (int j = 0;j<xcell;j++){
         for (int i = 0;i<ycell;i++){
             vr.push_back(new Cell{Point{i*cellSize,j*cellSize},
-                                        cellSize,cellSize,Loc{i,j}});
+                                        cellSize,cellSize,Loc{i,j},this});
             attach(vr.back());
             //q.insert(&vr.back());
         }
@@ -530,3 +530,17 @@ void Pathfinder::clearBlk(){
     flush();
 }
 #pragma endregion
+
+// Cell comparator to sort the priority_queue
+bool cellCompareGt::operator()(Cell* lhs, Cell* rhs){
+    auto pf = lhs->getPf(); // pointer to the pathfinder to use manhattan
+    if (lhs->getCost() > rhs->getCost()){
+        return true;
+    }
+    else if (lhs->getCost() == rhs->getCost()){
+        return pf->manhattan(lhs) > pf->manhattan(rhs);
+    }
+    else{
+        return false;
+    }
+}

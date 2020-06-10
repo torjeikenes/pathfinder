@@ -16,11 +16,3 @@ void Cell::setVisited(){
     status = Stat::visited;
     set_fill_color(visitedC);
 }
-
-bool Cell::operator<(Cell* rhs){
-    return this->getCost()<rhs->getCost();
-}
-
-bool Cell::operator>(Cell* rhs){
-    return this->getCost()>rhs->getCost();
-}
